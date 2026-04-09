@@ -33,7 +33,7 @@ public class BookingService {
         }
 
         // 3. Logic Validation: Check for end time after start time
-        if (request.getEndTime().isBefore(request.getStartTime())) {
+        if (request.getEndTime().isBefore(request.getStartTime()) || request.getEndTime().isEqual(request.getStartTime())) {
             throw new BookingConflictException("End time must be after start time.");
         }
 
@@ -62,17 +62,5 @@ public class BookingService {
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
-    }
-
-    @Transactional
-    public Booking updateBookingStatus(Long id, Booking.BookingStatus status, String adminId, String reason) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + id));
-
-        booking.setStatus(status);
-        booking.setApprovedBy(adminId);
-        booking.setRejectionReason(reason);
-
-        return bookingRepository.save(booking);
     }
 }
