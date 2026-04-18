@@ -20,6 +20,7 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Booking createBooking(BookingRequest request) {
@@ -97,6 +98,9 @@ public class BookingService {
         booking.setStatus(status);
         if (status == Booking.BookingStatus.REJECTED) {
             booking.setRejectionReason(rejectionReason);
+            notificationService.createNotification(booking.getUserId(), "Your booking for resource " + booking.getResourceId() + " was REJECTED. Reason: " + rejectionReason);
+        } else if (status == Booking.BookingStatus.APPROVED) {
+            notificationService.createNotification(booking.getUserId(), "Your booking for resource " + booking.getResourceId() + " was APPROVED.");
         }
         booking.setApprovedBy(adminId);
 
