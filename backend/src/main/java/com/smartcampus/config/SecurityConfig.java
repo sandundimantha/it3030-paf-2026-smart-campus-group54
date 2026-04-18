@@ -14,10 +14,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import com.smartcampus.security.CustomOAuth2UserService;
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -29,7 +35,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/bookings/*/status").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
-            .oauth2Login(Customizer.withDefaults());
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)
+                )
+            );
 
         return http.build();
     }
