@@ -3,8 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import CreateBookingPage from './pages/CreateBookingPage';
 import UserBookingsPage from './pages/UserBookingsPage';
 import AdminApprovalPage from './pages/AdminApprovalPage';
+import ReportIncidentPage from './pages/ReportIncidentPage';
+import NotificationPanel from './components/NotificationPanel';
 import './App.css';
-import { Calendar, LayoutDashboard } from 'lucide-react';
+import { Calendar, LayoutDashboard, AlertTriangle } from 'lucide-react';
 
 function Navigation() {
   const location = useLocation();
@@ -16,12 +18,15 @@ function Navigation() {
           <Calendar /> 
           Smart Campus Hub
         </div>
-        <div className="nav-links">
+        <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
             Dashboard
           </Link>
           <Link to="/create-booking" className={`nav-link ${location.pathname === '/create-booking' ? 'active' : ''}`}>
             Book Resource
+          </Link>
+          <Link to="/report-incident" className={`nav-link ${location.pathname === '/report-incident' ? 'active' : ''}`}>
+            Report Incident
           </Link>
           <Link to="/my-bookings" className={`nav-link ${location.pathname === '/my-bookings' ? 'active' : ''}`}>
             My Bookings
@@ -29,6 +34,7 @@ function Navigation() {
           <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>
             Admin Approval
           </Link>
+          <NotificationPanel />
         </div>
       </div>
     </nav>
@@ -44,9 +50,14 @@ function WelcomePage() {
         Seamlessly book lecture halls, lab equipment, and other campus resources. 
         Track your bookings and manage your campus experience perfectly.
       </p>
-      <Link to="/create-booking" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>
-        Get Started
-      </Link>
+      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+        <Link to="/create-booking" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>
+          Get Started
+        </Link>
+        <Link to="/report-incident" className="btn btn-danger" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <AlertTriangle size={18} /> Report Issue
+        </Link>
+      </div>
     </div>
   );
 }
@@ -60,6 +71,7 @@ function App() {
           <Routes>
             <Route path="/" element={<WelcomePage />} />
             <Route path="/create-booking" element={<CreateBookingPage />} />
+            <Route path="/report-incident" element={<ReportIncidentPage />} />
             <Route path="/my-bookings" element={<UserBookingsPage />} />
             <Route path="/admin" element={<AdminApprovalPage />} />
           </Routes>
