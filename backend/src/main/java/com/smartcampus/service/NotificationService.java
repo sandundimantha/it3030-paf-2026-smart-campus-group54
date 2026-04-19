@@ -26,7 +26,7 @@ public class NotificationService {
                 .userId(userId)
                 .message(message)
                 .type(type)
-                .isRead(false)
+                .read(false)
                 .build();
         log.info("Creating notification for user {}: {}", userId, message);
         return notificationRepository.save(notification);
