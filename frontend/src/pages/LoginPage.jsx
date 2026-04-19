@@ -164,7 +164,7 @@ export default function LoginPage() {
           <span style={styles.dividerText}>or</span>
         </div>
         <button
-          onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
+          onClick={() => window.location.href = 'http://localhost:8081/oauth2/authorization/google'}
           style={styles.googleButton}
           title="OAuth2 — requires Google credentials configured in application.properties"
         >
