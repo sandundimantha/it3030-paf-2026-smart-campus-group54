@@ -1,26 +1,54 @@
 package com.smartcampus.service;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface FileStorageService {
-    /**
-     * Uploads a file to Supabase Storage.
-     * @param file The file to upload.
-     * @param path The path within the bucket (e.g., "incidents/image1.jpg").
-     * @return The public URL of the uploaded file.
-     */
-    String uploadFile(MultipartFile file, String path);
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Objects;
+import java.util.UUID;
 
-    /**
-     * Deletes a file from Supabase Storage.
-     * @param path The path within the bucket.
-     */
-    void deleteFile(String path);
+@Service
+public class FileStorageService {
 
-    /**
-     * Generates the public URL for a file.
-     * @param path The path within the bucket.
-     * @return The public URL.
-     */
-    String getPublicUrl(String path);
+    private final Path fileStorageLocation;
+
+    public FileStorageService(@Value("${file.upload-dir:uploads}") String uploadDir) {
+        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+
+        try {
+            Files.createDirectories(this.fileStorageLocation);
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
+        }
+    }
+
+    public String storeFile(MultipartFile file) {
+        String originalFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        String fileExtension = "";
+        
+        try {
+            if (originalFileName.contains("..")) {
+                throw new RuntimeException("Sorry! Filename contains invalid path sequence " + originalFileName);
+            }
+
+            int lastDotIndex = originalFileName.lastIndexOf(".");
+            if (lastDotIndex > 0) {
+                fileExtension = originalFileName.substring(lastDotIndex);
+            }
+
+            String fileName = UUID.randomUUID().toString() + fileExtension;
+            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            return fileName;
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not store file " + originalFileName + ". Please try again!", ex);
+        }
+    }
 }
