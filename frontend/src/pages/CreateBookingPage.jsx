@@ -79,7 +79,7 @@ export default function CreateBookingPage() {
 
       await bookingService.createBooking({
         resourceId: Number(formData.resourceId),
-        userId: user?.email || 'anonymous',
+        userId: user?.id,
         startTime: formatLocal(formData.startTime),
         endTime: formatLocal(formData.endTime)
       });
