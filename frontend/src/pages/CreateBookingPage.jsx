@@ -54,11 +54,14 @@ export default function CreateBookingPage() {
     }
 
     try {
+      // Send as local datetime string (without 'Z') for backend LocalDateTime
+      const formatLocal = (val) => val.includes(':') && val.length === 16 ? val + ':00' : val;
+
       await bookingService.createBooking({
         resourceId: Number(formData.resourceId),
         userId: user?.email || 'anonymous',
-        startTime: start.toISOString(),
-        endTime: end.toISOString()
+        startTime: formatLocal(formData.startTime),
+        endTime: formatLocal(formData.endTime)
       });
       setSuccess(true);
       setTimeout(() => navigate('/my-bookings'), 2000);

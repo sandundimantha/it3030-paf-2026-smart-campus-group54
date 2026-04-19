@@ -38,6 +38,7 @@ D:\PAF\backend\src\main\java\com\smartcampus\dto\BookingRequest.java
 D:\PAF\backend\src\main\java\com\smartcampus\controller\UserController.java
 D:\PAF\backend\src\main\java\com\smartcampus\dto\UserProfileResponse.java
 D:\PAF\backend\src\main\java\com\smartcampus\security\CustomOAuth2UserService.java
+D:\PAF\backend\src\main\java\com\smartcampus\service\impl\LocalFileStorageServiceImpl.java
 D:\PAF\backend\src\main\java\com\smartcampus\entity\Booking.java
 D:\PAF\backend\src\main\java\com\smartcampus\service\impl\SupabaseStorageServiceImpl.java
 D:\PAF\backend\src\main\java\com\smartcampus\dto\ResourceRequest.java
