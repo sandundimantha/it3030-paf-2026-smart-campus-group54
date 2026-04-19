@@ -21,7 +21,7 @@ public class Notification {
     private Long id;
 
     @Column(nullable = false)
-    private String userId; // email of the target user
+    private String userId;
 
     @Column(nullable = false, length = 500)
     private String message;

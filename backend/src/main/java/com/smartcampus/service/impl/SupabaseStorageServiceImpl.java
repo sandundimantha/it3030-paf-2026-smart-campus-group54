@@ -1,6 +1,6 @@
 package com.smartcampus.service.impl;
 
-import com.smartcampus.service.FileStorageService;
+import com.smartcampus.service.FileStorageInterface;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -10,8 +10,8 @@ import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 
-@Service
-public class SupabaseStorageServiceImpl implements FileStorageService {
+@Service("supabaseStorageService")
+public class SupabaseStorageServiceImpl implements FileStorageInterface {
 
     private final WebClient webClient;
     private final String bucketName;

@@ -25,7 +25,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        // 1. Load user info from Google
         OAuth2User oauth2User = super.loadUser(userRequest);
 
         String email = oauth2User.getAttribute("email");
@@ -34,7 +33,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         log.info("OAuth2 login: email={}, name={}", email, name);
 
-        // 2. Find existing user in DB or create new one
         AppUser appUser = appUserRepository.findByEmail(email)
                 .orElseGet(() -> {
                     log.info("New user registering via Google: {}", email);
@@ -42,21 +40,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                             .email(email)
                             .name(name)
                             .pictureUrl(picture)
-                            .role(AppUser.UserRole.USER) // Default role = USER
+                            .role(AppUser.UserRole.USER)
                             .build();
                 });
 
-        // 3. Update name and picture in case they changed on Google
         appUser.setName(name);
         appUser.setPictureUrl(picture);
         appUserRepository.save(appUser);
 
-        // 4. Assign Spring Security role based on DB role
         Set<GrantedAuthority> authorities = new HashSet<>(oauth2User.getAuthorities());
         authorities.add(new SimpleGrantedAuthority("ROLE_" + appUser.getRole().name()));
 
         log.info("User {} authenticated with role: {}", email, appUser.getRole());
-
         return new DefaultOAuth2User(authorities, oauth2User.getAttributes(), "email");
     }
 }
