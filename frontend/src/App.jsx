@@ -14,6 +14,7 @@ import NotificationPanel from './components/NotificationPanel';
 import FacilitiesPage from './pages/FacilitiesPage';
 import FacilityList from './pages/FacilityList';
 import MaintenanceDashboard from './pages/MaintenanceDashboard';
+import DashboardPage from './pages/DashboardPage';
 import './App.css';
 import './pages/DashboardPage.css';
 import { Calendar, LayoutDashboard, AlertTriangle, LogOut, User } from 'lucide-react';
