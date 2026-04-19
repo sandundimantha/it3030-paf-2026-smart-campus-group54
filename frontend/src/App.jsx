@@ -13,7 +13,9 @@ import AdminUsersPage from './pages/AdminUsersPage';
 import NotificationPanel from './components/NotificationPanel';
 import FacilitiesPage from './pages/FacilitiesPage';
 import FacilityList from './pages/FacilityList';
+import DashboardPage from './pages/DashboardPage';
 import './App.css';
+import './pages/DashboardPage.css';
 import { Calendar, LayoutDashboard, AlertTriangle, LogOut, User } from 'lucide-react';
 
 function Navigation() {
@@ -75,29 +77,7 @@ function Navigation() {
   );
 }
 
-function WelcomePage() {
-  const { user } = useAuth();
-  return (
-    <div className="container animate-fade-in" style={{ marginTop: '3rem', textAlign: 'center' }}>
-      <LayoutDashboard size={48} color="var(--primary-color)" style={{ margin: '0 auto 1.5rem' }} />
-      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-        Welcome{user ? `, ${user.name || user.email.split('@')[0]}` : ''} 👋
-      </h1>
-      <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto 2rem' }}>
-        Seamlessly book lecture halls, lab equipment, and other campus resources.
-        Track your bookings and manage your campus experience perfectly.
-      </p>
-      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-        <Link to="/create-booking" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>
-          Get Started
-        </Link>
-        <Link to="/report-incident" className="btn btn-danger" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <AlertTriangle size={18} /> Report Issue
-        </Link>
-      </div>
-    </div>
-  );
-}
+
 
 function App() {
   return (
@@ -107,7 +87,7 @@ function App() {
           <Navigation />
           <main className="main-content">
             <Routes>
-              <Route path="/" element={<WelcomePage />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/create-booking" element={<CreateBookingPage />} />
               <Route path="/report-incident" element={<ReportIncidentPage />} />
