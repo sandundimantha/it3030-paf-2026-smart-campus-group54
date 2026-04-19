@@ -1,26 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import userService from '../services/userService';
+import { useAuth } from '../context/AuthContext';
 
 /**
- * Shared auth context (simple — no Context API needed for this scope)
- * If you want to scale this, move to React Context later.
- */
-
-/**
- * ProtectedRoute: wraps pages that require login.
- * If the user is not authenticated, redirects to /login.
+ * ProtectedRoute — redirects to /login if user is not authenticated.
+ * Uses AuthContext (session is checked once on app load, no extra API calls).
  */
 export function ProtectedRoute({ children }) {
-  const [status, setStatus] = useState('loading'); // 'loading' | 'auth' | 'unauth'
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    userService.getMyProfile()
-      .then(() => setStatus('auth'))
-      .catch(() => setStatus('unauth'));
-  }, []);
-
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <div style={{
@@ -28,12 +17,13 @@ export function ProtectedRoute({ children }) {
           border: '4px solid rgba(255,255,255,0.1)',
           borderTop: '4px solid #4285f4',
           borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
         }} />
       </div>
     );
   }
 
-  if (status === 'unauth') {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
@@ -41,25 +31,12 @@ export function ProtectedRoute({ children }) {
 }
 
 /**
- * AdminRoute: wraps pages that require ADMIN role.
- * If user is not admin, shows Access Denied.
+ * AdminRoute — redirects to /login or shows Access Denied for non-admins.
  */
 export function AdminRoute({ children }) {
-  const [status, setStatus] = useState('loading'); // 'loading' | 'admin' | 'denied' | 'unauth'
+  const { user, loading, isAdmin } = useAuth();
 
-  useEffect(() => {
-    userService.getMyProfile()
-      .then(user => {
-        if (user.role === 'ADMIN') {
-          setStatus('admin');
-        } else {
-          setStatus('denied');
-        }
-      })
-      .catch(() => setStatus('unauth'));
-  }, []);
-
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <div style={{
@@ -67,16 +44,17 @@ export function AdminRoute({ children }) {
           border: '4px solid rgba(255,255,255,0.1)',
           borderTop: '4px solid #4285f4',
           borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
         }} />
       </div>
     );
   }
 
-  if (status === 'unauth') {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (status === 'denied') {
+  if (!isAdmin) {
     return (
       <div style={{
         display: 'flex', flexDirection: 'column',

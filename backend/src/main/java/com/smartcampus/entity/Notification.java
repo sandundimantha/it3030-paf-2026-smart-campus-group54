@@ -21,7 +21,7 @@ public class Notification {
     private Long id;
 
     @Column(nullable = false)
-    private String userId; // email of the target user
+    private String userId;
 
     @Column(nullable = false, length = 500)
     private String message;
@@ -33,7 +33,7 @@ public class Notification {
 
     @Column(nullable = false)
     @Builder.Default
-    private boolean isRead = false;
+    private boolean read = false;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

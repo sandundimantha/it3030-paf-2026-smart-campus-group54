@@ -12,8 +12,10 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
+    List<Booking> findByUserId(String userId);
+
     @Query("SELECT b FROM Booking b WHERE b.resourceId = :resourceId " +
-           "AND b.status != 'REJECTED' " +
+           "AND b.status != 'REJECTED' AND b.status != 'CANCELLED' " +
            "AND (:newStart < b.endTime AND :newEnd > b.startTime)")
     List<Booking> findOverlappingBookings(
             @Param("resourceId") Long resourceId,

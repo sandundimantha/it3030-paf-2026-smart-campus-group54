@@ -41,6 +41,51 @@ public class Booking {
     private String rejectionReason;
 
     public enum BookingStatus {
-        PENDING, APPROVED, REJECTED
+        PENDING, APPROVED, REJECTED, CANCELLED
     }
+
 }
+
+    
+        
+    
+
+    
+        
+    
+        
+    
+
+    
+        
+    
+        
+    
+
+    
+        
+    
+        
+    
+
+    
+        
+    
+        
+    
+
+    
+        
+    
+        
+    
+
+    
+        
+    
+        
+    
+
+    
+        
+    

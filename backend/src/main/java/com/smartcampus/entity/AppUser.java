@@ -25,7 +25,11 @@ public class AppUser {
 
     private String name;
 
-    private String pictureUrl; // Google profile photo
+    // Password for form-based login (BCrypt encoded). Null for OAuth2-only users.
+    @Column(nullable = true)
+    private String password;
+
+    private String pictureUrl; // Google profile photo (OAuth2)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
