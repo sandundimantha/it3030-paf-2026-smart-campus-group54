@@ -30,12 +30,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                // ---- PUBLIC endpoints (no login needed) ----
                 .requestMatchers("/api/public/**", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/facilities/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/facilities/search").permitAll()
-
-                // ---- ADMIN only endpoints ----
                 .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/users/*/role").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/facilities").hasRole("ADMIN")
@@ -49,7 +46,6 @@ public class SecurityConfig {
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
                 )
-                // After successful Google login, redirect to frontend profile page
                 .defaultSuccessUrl("http://localhost:5173/profile", true)
                 .failureUrl("http://localhost:5173/login?error=true")
             )

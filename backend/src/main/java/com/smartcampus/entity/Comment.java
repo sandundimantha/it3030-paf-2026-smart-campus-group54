@@ -9,31 +9,25 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "comments")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification {
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String userId;
-
-    @Column(nullable = false, length = 500)
-    private String message;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private NotificationType type = NotificationType.GENERAL;
+    private Long incidentId;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean isRead = false;
+    private String autorId;
+
+    @Column(nullable = false, length = 1000)
+    private String content;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -41,14 +35,5 @@ public class Notification {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-    }
-
-    public enum NotificationType {
-        BOOKING_APPROVED,
-        BOOKING_REJECTED,
-        BOOKING_CANCELLED,
-        TICKET_STATUS_CHANGED,
-        NEW_COMMENT,
-        GENERAL
     }
 }

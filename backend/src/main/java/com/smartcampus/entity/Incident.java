@@ -9,31 +9,37 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "incidents")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification {
+public class Incident {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private String title;
 
-    @Column(nullable = false, length = 500)
-    private String message;
+    @Column(nullable = false, length = 1000)
+    private String description;
+
+    @Column(nullable = false)
+    private String location;
+
+    // Up to 3 images as requested
+    private String imageUrl1;
+    private String imageUrl2;
+    private String imageUrl3;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    private NotificationType type = NotificationType.GENERAL;
+    private IncidentStatus status;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean isRead = false;
+    private String reportedBy;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -43,12 +49,7 @@ public class Notification {
         createdAt = LocalDateTime.now();
     }
 
-    public enum NotificationType {
-        BOOKING_APPROVED,
-        BOOKING_REJECTED,
-        BOOKING_CANCELLED,
-        TICKET_STATUS_CHANGED,
-        NEW_COMMENT,
-        GENERAL
+    public enum IncidentStatus {
+        OPEN, IN_PROGRESS, RESOLVED
     }
 }
