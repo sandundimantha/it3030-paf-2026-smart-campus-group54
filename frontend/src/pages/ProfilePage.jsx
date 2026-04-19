@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import userService from '../services/userService';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     userService.getMyProfile()
@@ -13,8 +17,9 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleLogout = () => {
-    window.location.href = 'http://localhost:8081/api/auth/logout';
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
 
   if (loading) return <div style={styles.center}><div style={styles.spinner}></div></div>;

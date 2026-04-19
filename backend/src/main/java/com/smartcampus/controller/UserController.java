@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,9 +25,8 @@ public class UserController {
      * Get the currently logged-in user's profile
      */
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> getMyProfile(
-            @AuthenticationPrincipal OAuth2User principal) {
-        String email = principal.getAttribute("email");
+    public ResponseEntity<UserProfileResponse> getMyProfile(Authentication authentication) {
+        String email = authentication.getName();
         return ResponseEntity.ok(userService.getMyProfile(email));
     }
 

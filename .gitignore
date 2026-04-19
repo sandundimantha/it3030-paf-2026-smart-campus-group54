@@ -52,3 +52,4 @@ log.txt
 status.txt
 backend/boot_log.txt
 backend/compile_log.txt
+backend/src/main/resources/application.properties

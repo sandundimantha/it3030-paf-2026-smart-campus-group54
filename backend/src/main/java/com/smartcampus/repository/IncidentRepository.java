@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface IncidentRepository extends JpaRepository<Incident, Long> {
-    List<Incident> findByReportedBy(String reportedBy);
+    List<Incident> findByReportedBy(Long reportedBy);
 }

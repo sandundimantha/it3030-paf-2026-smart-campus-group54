@@ -18,7 +18,7 @@ public class IncidentService {
     private final NotificationService notificationService;
 
     @Transactional
-    public Incident createIncident(String title, String description, String location, String userId, List<MultipartFile> images) {
+    public Incident createIncident(String title, String description, String location, Long userId, List<MultipartFile> images) {
         
         Incident incident = Incident.builder()
                 .title(title)
@@ -29,7 +29,7 @@ public class IncidentService {
                 .build();
 
         if (images != null && !images.isEmpty()) {
-            List<String> fileUrls = fileStorageService.saveFiles(images);
+            List<String> fileUrls = fileStorageService.uploadFiles(images);
             if (fileUrls.size() > 0) incident.setImageUrl1(fileUrls.get(0));
             if (fileUrls.size() > 1) incident.setImageUrl2(fileUrls.get(1));
             if (fileUrls.size() > 2) incident.setImageUrl3(fileUrls.get(2));
@@ -58,7 +58,7 @@ public class IncidentService {
         return incidentRepository.findAll();
     }
 
-    public List<Incident> getUserIncidents(String userId) {
+    public List<Incident> getUserIncidents(Long userId) {
         return incidentRepository.findByReportedBy(userId);
     }
 }

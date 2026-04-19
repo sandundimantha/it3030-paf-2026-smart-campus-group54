@@ -1,6 +1,9 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { bookingService } from '../services/bookingService';
-import { CalendarClock, AlertCircle, CheckCircle } from 'lucide-react';
+import api from '../services/api';
+import { CalendarClock, AlertCircle, CheckCircle, Package } from 'lucide-react';
 
 export default function CreateBookingPage() {
   const navigate = useNavigate();
@@ -12,9 +15,28 @@ export default function CreateBookingPage() {
     endTime: ''
   });
   
+  const [resources, setResources] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetchingResources, setFetchingResources] = useState(true);
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const response = await api.get('/resources');
+        // Filter only ACTIVE resources for booking
+        const activeResources = response.data.filter(r => r.status === 'ACTIVE' || r.status === 'active');
+        setResources(activeResources);
+      } catch (err) {
+        console.error('Failed to fetch resources:', err);
+        setError('Could not load facilities list. Please refresh the page.');
+      } finally {
+        setFetchingResources(false);
+      }
+    };
+    fetchResources();
+  }, []);
 
   // Helper to get today's date in 'YYYY-MM-DDTHH:mm' format for 'min' attribute
   const getMinDateTime = () => {
@@ -52,11 +74,14 @@ export default function CreateBookingPage() {
     }
 
     try {
+      // Send as local datetime string (without 'Z') for backend LocalDateTime
+      const formatLocal = (val) => val.includes(':') && val.length === 16 ? val + ':00' : val;
+
       await bookingService.createBooking({
         resourceId: Number(formData.resourceId),
-        userId: user?.email || 'anonymous',
-        startTime: start.toISOString(),
-        endTime: end.toISOString()
+        userId: user?.id,
+        startTime: formatLocal(formData.startTime),
+        endTime: formatLocal(formData.endTime)
       });
       setSuccess(true);
       setTimeout(() => navigate('/my-bookings'), 2000);
@@ -101,17 +126,34 @@ export default function CreateBookingPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="resourceId">Resource ID (e.g. 1 for Lecture Hall)</label>
-            <input
-              type="number"
-              id="resourceId"
-              name="resourceId"
-              className="input-field"
-              value={formData.resourceId}
-              onChange={handleChange}
-              required
-              min="1"
-            />
+            <label htmlFor="resourceId">Select Facility / Resource</label>
+            <div style={{ position: 'relative' }}>
+              <select
+                id="resourceId"
+                name="resourceId"
+                className="input-field"
+                value={formData.resourceId}
+                onChange={handleChange}
+                required
+                disabled={fetchingResources}
+                style={{ appearance: 'none', paddingRight: '2.5rem' }}
+              >
+                <option value="">{fetchingResources ? 'Loading facilities...' : '-- Choose a Resource --'}</option>
+                {resources.map(res => (
+                  <option key={res.id} value={res.id}>
+                    {res.name} (Capacity: {res.capacity}) - {res.location}
+                  </option>
+                ))}
+              </select>
+              <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }}>
+                <Package size={18} />
+              </div>
+            </div>
+            {resources.length === 0 && !fetchingResources && (
+              <p style={{ color: 'var(--danger-color)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                No active resources found in the system.
+              </p>
+            )}
           </div>
 
           <div className="form-group">

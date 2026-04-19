@@ -1,6 +1,6 @@
 package com.smartcampus.config;
 
-// import com.smartcampus.security.CustomOAuth2UserService;  // KEPT — OAuth2 code preserved for demonstration
+import com.smartcampus.security.CustomOAuth2UserService;
 import com.smartcampus.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +29,7 @@ import java.util.List;
 public class SecurityConfig {
 
     // ── OAUTH2 bean kept (commented out from chain, preserved for demonstration) ──
-    // private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -60,6 +60,11 @@ public class SecurityConfig {
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.sendError(401, "Unauthorized");
+                })
+            )
 
             // ── FORM-BASED LOGIN (Handled manually in AuthController to support JSON) ──
             /* .formLogin(form -> form
@@ -72,20 +77,21 @@ public class SecurityConfig {
             // ── LOGOUT ─────────────────────────────────────────────────────────────
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
-                .logoutSuccessUrl("http://localhost:5173/login")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(200);
+                })
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)
+                )
+                .successHandler((request, response, authentication) -> {
+                    response.sendRedirect("http://localhost:5174/profile");
+                })
             );
-
-            // ── OAUTH2 LOGIN (commented out — preserved for demonstration) ────────
-            // .oauth2Login(oauth2 -> oauth2
-            //     .userInfoEndpoint(userInfo -> userInfo
-            //         .userService(customOAuth2UserService)
-            //     )
-            //     .defaultSuccessUrl("http://localhost:5173/profile", true)
-            //     .failureUrl("http://localhost:5173/login?error=true")
-            // )
 
         return http.build();
     }
@@ -117,6 +123,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
+                "http://localhost:5174",
                 "http://localhost:3000",
                 "http://localhost:5175",
                 "http://localhost:5176"

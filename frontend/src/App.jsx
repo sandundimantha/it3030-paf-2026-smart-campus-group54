@@ -15,6 +15,7 @@ import FacilitiesPage from './pages/FacilitiesPage';
 import FacilityList from './pages/FacilityList';
 import MaintenanceDashboard from './pages/MaintenanceDashboard';
 import './App.css';
+import './pages/DashboardPage.css';
 import { Calendar, LayoutDashboard, AlertTriangle, LogOut, User } from 'lucide-react';
 
 function Navigation() {
@@ -107,7 +108,7 @@ function App() {
           <Navigation />
           <main className="main-content">
             <Routes>
-              <Route path="/" element={<WelcomePage />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/create-booking" element={<CreateBookingPage />} />
               <Route path="/maintenance-hub" element={<ProtectedRoute><MaintenanceDashboard /></ProtectedRoute>} />

@@ -24,7 +24,7 @@ public class Booking {
     private Long resourceId;
 
     @Column(nullable = false)
-    private String userId;
+    private Long userId;
 
     @Column(nullable = false)
     private LocalDateTime startTime;
@@ -43,49 +43,4 @@ public class Booking {
     public enum BookingStatus {
         PENDING, APPROVED, REJECTED, CANCELLED
     }
-
 }
-
-    
-        
-    
-
-    
-        
-    
-        
-    
-
-    
-        
-    
-        
-    
-
-    
-        
-    
-        
-    
-
-    
-        
-    
-        
-    
-
-    
-        
-    
-        
-    
-
-    
-        
-    
-        
-    
-
-    
-        
-    
