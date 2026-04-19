@@ -1,0 +1,22 @@
+# Maven build artifacts
+backend/target/
+target/
+
+# Log files
+*.log
+*.txt
+log.txt
+status.txt
+backend/boot_log.txt
+backend/compile_log.txt
+
+# VS Code
+.vscode/
+
+# IDE
+*.class
+*.jar
+
+# OS
+.DS_Store
+Thumbs.db
