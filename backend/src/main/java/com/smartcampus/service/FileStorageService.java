@@ -31,18 +31,19 @@ public class FileStorageService {
             if (originalFileName != null && originalFileName.contains(".")) {
                 fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
             }
-            
+
+            // MIME-type validation — only image/* content types are accepted
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 throw new RuntimeException("Invalid file type. Only images are allowed.");
             }
-            
-            // Generate a unique filename
+
+            // Generate a unique filename (prevents path traversal attacks)
             String fileName = UUID.randomUUID().toString() + fileExtension;
             Path filePath = Paths.get(uploadDir + fileName);
             Files.copy(file.getInputStream(), filePath);
-            
-            // Return relative path simulating a URL serving from /api/public/uploads/
+
+            // Return relative path served from /api/public/uploads/
             return "/api/public/uploads/incidents/" + fileName;
         } catch (IOException e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
@@ -52,7 +53,7 @@ public class FileStorageService {
     public List<String> saveFiles(List<MultipartFile> files) {
         List<String> fileUrls = new ArrayList<>();
         if (files != null) {
-            // Limit to 3 files as requested
+            // Strictly limit to 3 images per incident (Module C requirement)
             int fileLimit = Math.min(files.size(), 3);
             for (int i = 0; i < fileLimit; i++) {
                 if (!files.get(i).isEmpty()) {

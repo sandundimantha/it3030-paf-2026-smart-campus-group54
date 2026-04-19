@@ -32,6 +32,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/actuator/health/**").permitAll()
                 .requestMatchers("/api/bookings/*/status").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

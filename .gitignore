@@ -1,22 +1,49 @@
-# Maven build artifacts
-backend/target/
+# Java
 target/
+backend/target/
+*.class
+*.jar
+*.war
+*.ear
 
-# Log files
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+.factorypath
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.settings/
+.project
+.classpath
+.springBeans
+.sts4-cache
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr
+*.local
+frontend/node_modules/
+frontend/dist/
+
+# Logs
 *.log
-*.txt
+logs/
 log.txt
 status.txt
 backend/boot_log.txt
 backend/compile_log.txt
 
-# VS Code
-.vscode/
-
-# IDE
-*.class
-*.jar
-
 # OS
 .DS_Store
 Thumbs.db
+
+# Env
+.env
+.env.local
