@@ -1,9 +1,21 @@
+import React, { useEffect, useState } from 'react';
+import userService from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
-  const { user, loading, logout } = useAuth();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    userService.getMyProfile()
+      .then(data => setUser(data))
+      .catch(() => setError('Failed to load profile. Please log in again.'))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -11,17 +23,7 @@ export default function ProfilePage() {
   };
 
   if (loading) return <div style={styles.center}><div style={styles.spinner}></div></div>;
-  
-  if (!user) {
-    return (
-      <div style={styles.center}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ color: '#fc8181', marginBottom: '1rem' }}>No user profile found.</p>
-          <button onClick={() => navigate('/login')} className="btn btn-primary">Go to Login</button>
-        </div>
-      </div>
-    );
-  }
+  if (error) return <div style={styles.center}><p style={{ color: '#fc8181' }}>{error}</p></div>;
 
   const isAdmin = user?.role === 'ADMIN';
 
