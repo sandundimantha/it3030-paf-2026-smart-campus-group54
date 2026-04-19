@@ -42,13 +42,10 @@ public class FileStorageService {
                 throw new RuntimeException("Sorry! Filename contains invalid path sequence " + originalFileName);
             }
 
-            int lastDotIndex = originalFileName.lastIndexOf(".");
-            if (lastDotIndex > 0) {
-                fileExtension = originalFileName.substring(lastDotIndex);
-            }
+            fileExtension = extractSafeExtension(originalFileName);
 
             String fileName = UUID.randomUUID() + fileExtension;
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Path targetLocation = safeResolve(this.fileStorageLocation, fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
             return fileName;
@@ -61,8 +58,8 @@ public class FileStorageService {
         try {
             String originalFileName = file.getOriginalFilename();
             String fileExtension = "";
-            if (originalFileName != null && originalFileName.contains(".")) {
-                fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
+            if (originalFileName != null) {
+                fileExtension = extractSafeExtension(originalFileName);
             }
 
             String contentType = file.getContentType();
@@ -71,7 +68,7 @@ public class FileStorageService {
             }
 
             String fileName = UUID.randomUUID() + fileExtension;
-            Path filePath = incidentUploadPath.resolve(fileName);
+            Path filePath = safeResolve(incidentUploadPath, fileName);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             return "/api/public/uploads/incidents/" + fileName;
@@ -91,5 +88,26 @@ public class FileStorageService {
             }
         }
         return fileUrls;
+    }
+
+    private String extractSafeExtension(String originalFileName) {
+        int lastDotIndex = originalFileName.lastIndexOf(".");
+        if (lastDotIndex <= 0) {
+            return "";
+        }
+
+        String extension = originalFileName.substring(lastDotIndex).toLowerCase();
+        if (!extension.matches("\\.[a-z0-9]{1,10}")) {
+            throw new RuntimeException("Invalid file extension.");
+        }
+        return extension;
+    }
+
+    private Path safeResolve(Path basePath, String fileName) {
+        Path resolved = basePath.resolve(fileName).normalize();
+        if (!resolved.startsWith(basePath)) {
+            throw new RuntimeException("Invalid file path.");
+        }
+        return resolved;
     }
 }
