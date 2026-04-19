@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import CreateBookingPage from './pages/CreateBookingPage';
 import UserBookingsPage from './pages/UserBookingsPage';
@@ -13,14 +14,19 @@ import NotificationPanel from './components/NotificationPanel';
 import FacilitiesPage from './pages/FacilitiesPage';
 import FacilityList from './pages/FacilityList';
 import './App.css';
-import { Calendar, LayoutDashboard, AlertTriangle } from 'lucide-react';
+import { Calendar, LayoutDashboard, AlertTriangle, LogOut, User } from 'lucide-react';
 
 function Navigation() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout, isAdmin } = useAuth();
 
-  if (location.pathname === '/login') {
-    return null;
-  }
+  if (location.pathname === '/login') return null;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <nav className="navbar">
@@ -29,16 +35,40 @@ function Navigation() {
           <Calendar />
           Smart Campus Hub
         </div>
-        <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Dashboard</Link>
           <Link to="/create-booking" className={`nav-link ${location.pathname === '/create-booking' ? 'active' : ''}`}>Book Resource</Link>
           <Link to="/report-incident" className={`nav-link ${location.pathname === '/report-incident' ? 'active' : ''}`}>Report Incident</Link>
           <Link to="/my-bookings" className={`nav-link ${location.pathname === '/my-bookings' ? 'active' : ''}`}>My Bookings</Link>
-          <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>Admin Approval</Link>
-          <Link to="/notifications" className={`nav-link ${location.pathname === '/notifications' ? 'active' : ''}`}>Notifications</Link>
-          <Link to="/profile" className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}>Profile</Link>
-          <Link to="/admin/users" className={`nav-link ${location.pathname === '/admin/users' ? 'active' : ''}`}>Manage Users</Link>
+          <Link to="/facilities" className={`nav-link ${location.pathname === '/facilities' ? 'active' : ''}`}>Facilities</Link>
+          {isAdmin && (
+            <>
+              <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>Approvals</Link>
+              <Link to="/admin/users" className={`nav-link ${location.pathname === '/admin/users' ? 'active' : ''}`}>Users</Link>
+              <Link to="/admin/facilities" className={`nav-link ${location.pathname === '/admin/facilities' ? 'active' : ''}`}>Manage Facilities</Link>
+            </>
+          )}
           <NotificationPanel />
+
+          {/* User info + logout */}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94a3b8', textDecoration: 'none', fontSize: '0.875rem' }}>
+                <User size={16} />
+                <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.name || user.email}
+                </span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '0.4rem', padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem' }}
+              >
+                <LogOut size={14} /> Logout
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" style={{ color: '#60a5fa', fontSize: '0.875rem' }}>Sign In</Link>
+          )}
         </div>
       </div>
     </nav>
@@ -46,10 +76,13 @@ function Navigation() {
 }
 
 function WelcomePage() {
+  const { user } = useAuth();
   return (
     <div className="container animate-fade-in" style={{ marginTop: '3rem', textAlign: 'center' }}>
       <LayoutDashboard size={48} color="var(--primary-color)" style={{ margin: '0 auto 1.5rem' }} />
-      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Welcome to Smart Campus Hub</h1>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+        Welcome{user ? `, ${user.name || user.email.split('@')[0]}` : ''} 👋
+      </h1>
       <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto 2rem' }}>
         Seamlessly book lecture halls, lab equipment, and other campus resources.
         Track your bookings and manage your campus experience perfectly.
@@ -69,25 +102,28 @@ function WelcomePage() {
 function App() {
   return (
     <Router>
-      <div className="app-container">
-        <Navigation />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<WelcomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/create-booking" element={<CreateBookingPage />} />
-            <Route path="/report-incident" element={<ReportIncidentPage />} />
-            <Route path="/my-bookings" element={<UserBookingsPage />} />
-            <Route path="/admin" element={<AdminApprovalPage />} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-            <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
-            <Route path="/facilities" element={<FacilityList />} />
-            <Route path="/admin/facilities" element={<AdminRoute><FacilitiesPage /></AdminRoute>} />
-          </Routes>
-        </main>
-      </div>
+      <AuthProvider>
+        <div className="app-container">
+          <Navigation />
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<WelcomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/create-booking" element={<CreateBookingPage />} />
+              <Route path="/report-incident" element={<ReportIncidentPage />} />
+              <Route path="/my-bookings" element={<UserBookingsPage />} />
+              <Route path="/admin" element={<AdminApprovalPage />} />
+              <Route path="/facilities" element={<FacilityList />} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+              <Route path="/admin/facilities" element={<AdminRoute><FacilitiesPage /></AdminRoute>} />
+            </Routes>
+          </main>
+        </div>
+      </AuthProvider>
     </Router>
   );
 }
+
 export default App;
