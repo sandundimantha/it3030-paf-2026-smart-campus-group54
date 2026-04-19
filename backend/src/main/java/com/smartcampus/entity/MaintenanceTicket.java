@@ -44,6 +44,17 @@ public class MaintenanceTicket {
     @Column(nullable = false)
     private String reporterId;
 
+    private String technicianId;
+
+    private LocalDateTime resolvedAt;
+
+    @Column(length = 1000)
+    private String feedbackComment;
+
+    private Integer feedbackRating; // 1-5 stars
+
+    private LocalDateTime feedbackAt;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

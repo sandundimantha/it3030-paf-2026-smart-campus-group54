@@ -8,10 +8,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import org.springframework.context.annotation.Primary;
 import java.io.IOException;
 
-@Service("supabaseStorageService")
-public class SupabaseStorageServiceImpl implements FileStorageInterface {
+@Service
+@Primary
+public class SupabaseStorageServiceImpl implements FileStorageService {
 
     private final WebClient webClient;
     private final String bucketName;

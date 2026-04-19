@@ -27,9 +27,14 @@ public class MaintenanceService {
                     .filter(file -> !file.isEmpty())
                     .limit(3) // Cap at 3 images as per requirement
                     .map(file -> {
-                        String fileName = fileStorageService.storeFile(file);
+                        String originalName = file.getOriginalFilename();
+                        String extension = originalName != null && originalName.contains(".") 
+                            ? originalName.substring(originalName.lastIndexOf(".")) : "";
+                        String uniquePath = "maintenance/" + java.util.UUID.randomUUID().toString() + extension;
+                        
+                        String imageUrl = fileStorageService.uploadFile(file, uniquePath);
                         return MaintenanceImage.builder()
-                                .imageUrl(fileName)
+                                .imageUrl(imageUrl)
                                 .ticket(ticket)
                                 .build();
                     })
@@ -40,8 +45,12 @@ public class MaintenanceService {
         return maintenanceRepository.save(ticket);
     }
 
-    public List<MaintenanceTicket> getAllTickets() {
-        return maintenanceRepository.findAll();
+    public List<MaintenanceTicket> getTicketsForUser(String reporterId, boolean isAdmin) {
+        if (isAdmin) {
+            return maintenanceRepository.findAllSorted();
+        } else {
+            return maintenanceRepository.findByReporterIdOrderByCreatedAtDesc(reporterId);
+        }
     }
 
     public MaintenanceTicket getTicketById(Long id) {
@@ -53,6 +62,34 @@ public class MaintenanceService {
     public MaintenanceTicket updateStatus(Long id, MaintenanceTicket.TicketStatus status) {
         MaintenanceTicket ticket = getTicketById(id);
         ticket.setStatus(status);
+        
+        if (status == MaintenanceTicket.TicketStatus.RESOLVED) {
+            ticket.setResolvedAt(java.time.LocalDateTime.now());
+        }
+        
+        return maintenanceRepository.save(ticket);
+    }
+
+    @Transactional
+    public MaintenanceTicket assignTechnician(Long id, String technicianId) {
+        MaintenanceTicket ticket = getTicketById(id);
+        ticket.setTechnicianId(technicianId);
+        ticket.setStatus(MaintenanceTicket.TicketStatus.IN_PROGRESS);
+        return maintenanceRepository.save(ticket);
+    }
+
+    @Transactional
+    public MaintenanceTicket submitFeedback(Long id, String comment, Integer rating) {
+        MaintenanceTicket ticket = getTicketById(id);
+        
+        if (ticket.getStatus() != MaintenanceTicket.TicketStatus.RESOLVED) {
+            throw new RuntimeException("Cannot submit feedback until the ticket is marked as RESOLVED.");
+        }
+        
+        ticket.setFeedbackComment(comment);
+        ticket.setFeedbackRating(rating);
+        ticket.setFeedbackAt(java.time.LocalDateTime.now());
+        
         return maintenanceRepository.save(ticket);
     }
 }
