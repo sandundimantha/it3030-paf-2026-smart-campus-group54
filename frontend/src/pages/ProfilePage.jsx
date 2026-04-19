@@ -1,24 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import userService from '../services/userService';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    userService.getMyProfile()
-      .then(data => setUser(data))
-      .catch(() => setError('Failed to load profile. Please log in again.'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleLogout = () => {
-    window.location.href = 'http://localhost:8081/api/auth/logout';
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
 
   if (loading) return <div style={styles.center}><div style={styles.spinner}></div></div>;
-  if (error) return <div style={styles.center}><p style={{ color: '#fc8181' }}>{error}</p></div>;
+  
+  if (!user) {
+    return (
+      <div style={styles.center}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: '#fc8181', marginBottom: '1rem' }}>No user profile found.</p>
+          <button onClick={() => navigate('/login')} className="btn btn-primary">Go to Login</button>
+        </div>
+      </div>
+    );
+  }
 
   const isAdmin = user?.role === 'ADMIN';
 
