@@ -61,13 +61,13 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
 
-            // ── FORM-BASED LOGIN (active) ────────────────────────────────────────
-            .formLogin(form -> form
-                .loginProcessingUrl("/api/auth/login")     // Frontend POSTs credentials here
-                .defaultSuccessUrl("/api/auth/me", false)  // Returns user info on success
+            // ── FORM-BASED LOGIN (Handled manually in AuthController to support JSON) ──
+            /* .formLogin(form -> form
+                .loginProcessingUrl("/api/auth/login")
+                .defaultSuccessUrl("/api/auth/me", false)
                 .failureUrl("/api/auth/login?error=true")
                 .permitAll()
-            )
+            ) */
 
             // ── LOGOUT ─────────────────────────────────────────────────────────────
             .logout(logout -> logout

@@ -8,10 +8,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +36,7 @@ public class AuthController {
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     /**
      * POST /api/auth/register
@@ -71,7 +78,7 @@ public class AuthController {
      * Body: { "username": "email@...", "password": "..." }
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpServletRequest request, HttpServletResponse response) {
         String email = body.get("username"); // Spring Security uses 'username' field
         String password = body.get("password");
 
@@ -79,7 +86,11 @@ public class AuthController {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
             );
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(auth);
+            SecurityContextHolder.setContext(context);
+            securityContextRepository.saveContext(context, request, response);
 
             // Fetch full user profile to return
             Optional<AppUser> user = appUserRepository.findByEmail(email);
