@@ -14,7 +14,7 @@ export default function ProfilePage() {
   }, []);
 
   const handleLogout = () => {
-    window.location.href = 'http://localhost:8080/api/auth/logout';
+    window.location.href = 'http://localhost:8081/api/auth/logout';
   };
 
   if (loading) return <div style={styles.center}><div style={styles.spinner}></div></div>;
