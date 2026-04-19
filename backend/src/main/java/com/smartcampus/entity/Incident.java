@@ -39,7 +39,7 @@ public class Incident {
     private IncidentStatus status;
 
     @Column(nullable = false)
-    private String reportedBy;
+    private Long reportedBy;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

@@ -24,7 +24,7 @@ public class Comment {
     private Long incidentId;
 
     @Column(nullable = false)
-    private String autorId;
+    private Long autorId; // Numeric author ID
 
     @Column(nullable = false, length = 1000)
     private String content;
