@@ -41,7 +41,12 @@ public class BookingService {
             throw new BookingConflictException("End time must be after start time.");
         }
 
-        // 4. Advanced Conflict Detection: Check for overlapping ranges
+        // 4. Time Validation: Prevent booking in the past
+        if (request.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new BookingConflictException("Cannot create a booking for a past date/time.");
+        }
+
+        // 5. Advanced Conflict Detection: Check for overlapping ranges
         List<Booking> overlapping = bookingRepository.findOverlappingBookings(
                 request.getResourceId(),
                 request.getStartTime(),

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { bookingService } from '../services/bookingService';
 import { CalendarClock, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function CreateBookingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth(); // Get currently logged in user
+
   const [formData, setFormData] = useState({
     resourceId: '',
     startTime: '',
@@ -14,6 +15,13 @@ export default function CreateBookingPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Helper to get today's date in 'YYYY-MM-DDTHH:mm' format for 'min' attribute
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,13 +34,29 @@ export default function CreateBookingPage() {
     setError(null);
     setSuccess(false);
 
+    // 1. Client-side Validation: Time Logic
+    const start = new Date(formData.startTime);
+    const end = new Date(formData.endTime);
+    const now = new Date();
+
+    if (start >= end) {
+      setError('End time must be strictly after start time.');
+      setLoading(false);
+      return;
+    }
+
+    if (start < now) {
+      setError('Start time cannot be in the past.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // We hardcode a generic userId here for now as requested or it will be picked up by backend OAuth
       await bookingService.createBooking({
         resourceId: Number(formData.resourceId),
-        userId: 'current-user-id',
-        startTime: new Date(formData.startTime).toISOString(),
-        endTime: new Date(formData.endTime).toISOString()
+        userId: user?.email || 'anonymous',
+        startTime: start.toISOString(),
+        endTime: end.toISOString()
       });
       setSuccess(true);
       setTimeout(() => navigate('/my-bookings'), 2000);
@@ -99,6 +123,7 @@ export default function CreateBookingPage() {
               className="input-field"
               value={formData.startTime}
               onChange={handleChange}
+              min={getMinDateTime()}
               required
             />
           </div>
@@ -112,6 +137,7 @@ export default function CreateBookingPage() {
               className="input-field"
               value={formData.endTime}
               onChange={handleChange}
+              min={formData.startTime || getMinDateTime()}
               required
             />
           </div>
