@@ -26,6 +26,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/resources/**").permitAll() // Permit access for Module A testing
                 .requestMatchers("/api/bookings/*/status").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -37,7 +38,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000", 
+            "http://localhost:5173", 
+            "http://localhost:5175", 
+            "http://localhost:5176"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

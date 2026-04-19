@@ -1,0 +1,13 @@
+com\smartcampus\service\ResourceService.class
+com\smartcampus\entity\Resource.class
+com\smartcampus\entity\Resource$ResourceStatus.class
+com\smartcampus\controller\ResourceController.class
+com\smartcampus\config\SecurityConfig.class
+com\smartcampus\service\ResourceServiceImpl.class
+com\smartcampus\exception\ResourceNotFoundException.class
+com\smartcampus\repository\ResourceRepository.class
+com\smartcampus\OperationsHubApplication.class
+com\smartcampus\dto\ResourceRequest.class
+com\smartcampus\dto\ErrorResponse.class
+com\smartcampus\exception\BookingConflictException.class
+com\smartcampus\exception\GlobalExceptionHandler.class
