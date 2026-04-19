@@ -97,6 +97,7 @@ public class AuthController {
             if (user.isPresent()) {
                 AppUser u = user.get();
                 return ResponseEntity.ok(Map.of(
+                        "id", u.getId(),
                         "email", u.getEmail(),
                         "name", u.getName() != null ? u.getName() : "",
                         "role", u.getRole().name(),
@@ -124,6 +125,7 @@ public class AuthController {
         String email = authentication.getName();
         return appUserRepository.findByEmail(email)
                 .map(user -> ResponseEntity.ok(Map.of(
+                        "id", user.getId(),
                         "email", user.getEmail(),
                         "name", user.getName() != null ? user.getName() : "",
                         "role", user.getRole().name(),

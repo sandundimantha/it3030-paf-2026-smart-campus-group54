@@ -4,22 +4,34 @@ import com.smartcampus.dto.BookingRequest;
 import com.smartcampus.entity.Booking;
 import com.smartcampus.service.BookingService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
-
 import com.smartcampus.dto.StatusUpdateRequest;
-import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/bookings")
-@RequiredArgsConstructor
 public class BookingController {
 
     private final BookingService bookingService;
+    private final com.smartcampus.repository.AppUserRepository appUserRepository;
+
+    @Autowired
+    public BookingController(BookingService bookingService, com.smartcampus.repository.AppUserRepository appUserRepository) {
+        this.bookingService = bookingService;
+        this.appUserRepository = appUserRepository;
+    }
+
+    private Long getAuthenticatedUserId(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) return null;
+        return appUserRepository.findByEmail(auth.getName())
+               .map(com.smartcampus.entity.AppUser::getId)
+               .orElse(null);
+    }
 
     @PostMapping
     public ResponseEntity<Booking> createBooking(@Valid @RequestBody BookingRequest request) {
@@ -34,13 +46,15 @@ public class BookingController {
 
     @GetMapping("/user")
     public ResponseEntity<List<Booking>> getUserBookings(Authentication authentication) {
-        String userId = authentication != null ? authentication.getName() : "testuser@student.com";
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(bookingService.getBookingsByUserId(userId));
     }
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<Booking> cancelBooking(@PathVariable Long id, Authentication authentication) {
-        String userId = authentication.getName();
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Booking cancelledBooking = bookingService.cancelBooking(id, userId);
         return ResponseEntity.ok(cancelledBooking);
     }

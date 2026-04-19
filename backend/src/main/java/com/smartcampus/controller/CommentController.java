@@ -4,24 +4,43 @@ import com.smartcampus.entity.Comment;
 import com.smartcampus.entity.Incident;
 import com.smartcampus.repository.CommentRepository;
 import com.smartcampus.repository.IncidentRepository;
+import com.smartcampus.repository.AppUserRepository;
+import com.smartcampus.entity.AppUser;
 import com.smartcampus.service.NotificationService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/incidents/{incidentId}/comments")
-@RequiredArgsConstructor
 public class CommentController {
 
     private final CommentRepository commentRepository;
     private final IncidentRepository incidentRepository;
+    private final AppUserRepository appUserRepository;
     private final NotificationService notificationService;
+
+    @Autowired
+    public CommentController(CommentRepository commentRepository, 
+                             IncidentRepository incidentRepository, 
+                             AppUserRepository appUserRepository,
+                             NotificationService notificationService) {
+        this.commentRepository = commentRepository;
+        this.incidentRepository = incidentRepository;
+        this.appUserRepository = appUserRepository;
+        this.notificationService = notificationService;
+    }
+
+    private Long getAuthenticatedUserId(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) return null;
+        return appUserRepository.findByEmail(auth.getName())
+               .map(AppUser::getId)
+               .orElse(null);
+    }
 
     @GetMapping
     public ResponseEntity<List<Comment>> getComments(@PathVariable Long incidentId) {
@@ -32,9 +51,10 @@ public class CommentController {
     public ResponseEntity<Comment> addComment(
             @PathVariable Long incidentId,
             @RequestBody String content,
-            @AuthenticationPrincipal OAuth2User principal) {
+            Authentication authentication) {
 
-        String userId = principal != null ? principal.getAttribute("email") : "testuser@student.com";
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
         Incident incident = incidentRepository.findById(incidentId)
                 .orElseThrow(() -> new RuntimeException("Incident not found"));
@@ -51,7 +71,7 @@ public class CommentController {
         if (!incident.getReportedBy().equals(userId)) {
             notificationService.createNotification(
                 incident.getReportedBy(),
-                "New comment on your incident ticket #" + incidentId + " from " + userId
+                "New comment on your incident ticket #" + incidentId + " from user ID " + userId
             );
         }
 

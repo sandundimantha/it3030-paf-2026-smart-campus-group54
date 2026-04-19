@@ -2,10 +2,12 @@ package com.smartcampus.controller;
 
 import com.smartcampus.entity.Notification;
 import com.smartcampus.service.NotificationService;
-import lombok.RequiredArgsConstructor;
+import com.smartcampus.repository.AppUserRepository;
+import com.smartcampus.entity.AppUser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,50 +15,60 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
-@RequiredArgsConstructor
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final AppUserRepository appUserRepository;
 
-    private String getEmail(OAuth2User principal) {
-        return principal != null
-                ? principal.getAttribute("email")
-                : "testuser@student.com";
+    @Autowired
+    public NotificationController(NotificationService notificationService, AppUserRepository appUserRepository) {
+        this.notificationService = notificationService;
+        this.appUserRepository = appUserRepository;
+    }
+
+    private Long getAuthenticatedUserId(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) return null;
+        return appUserRepository.findByEmail(auth.getName())
+               .map(AppUser::getId)
+               .orElse(null);
     }
 
     @GetMapping
-    public ResponseEntity<List<Notification>> getUserNotifications(
-            @AuthenticationPrincipal OAuth2User principal) {
-        return ResponseEntity.ok(notificationService.getUserNotifications(getEmail(principal)));
+    public ResponseEntity<List<Notification>> getUserNotifications(Authentication authentication) {
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 
     @GetMapping("/unread-count")
-    public ResponseEntity<Map<String, Long>> getUnreadCount(
-            @AuthenticationPrincipal OAuth2User principal) {
-        long count = notificationService.getUnreadCount(getEmail(principal));
+    public ResponseEntity<Map<String, Long>> getUnreadCount(Authentication authentication) {
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        long count = notificationService.getUnreadCount(userId);
         return ResponseEntity.ok(Map.of("count", count));
     }
 
     @PatchMapping("/{id}/read")
-    public ResponseEntity<Void> markAsRead(
-            @PathVariable Long id,
-            @AuthenticationPrincipal OAuth2User principal) {
-        notificationService.markAsRead(id, getEmail(principal));
+    public ResponseEntity<Void> markAsRead(@PathVariable Long id, Authentication authentication) {
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        notificationService.markAsRead(id, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/read-all")
-    public ResponseEntity<Void> markAllAsRead(
-            @AuthenticationPrincipal OAuth2User principal) {
-        notificationService.markAllAsRead(getEmail(principal));
+    public ResponseEntity<Void> markAllAsRead(Authentication authentication) {
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        notificationService.markAllAsRead(userId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNotification(
-            @PathVariable Long id,
-            @AuthenticationPrincipal OAuth2User principal) {
-        notificationService.deleteNotification(id, getEmail(principal));
+    public ResponseEntity<Void> deleteNotification(@PathVariable Long id, Authentication authentication) {
+        Long userId = getAuthenticatedUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        notificationService.deleteNotification(id, userId);
         return ResponseEntity.noContent().build();
     }
 }
