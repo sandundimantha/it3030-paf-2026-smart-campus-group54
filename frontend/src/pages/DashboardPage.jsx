@@ -14,12 +14,24 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
+
 const DashboardPage = () => {
   const { user, isAdmin } = useAuth();
   const [stats, setStats] = useState({
     bookings: [],
     incidents: [],
     notifications: [],
+    facilities: [],
     loading: true,
     error: null
   });
@@ -53,7 +65,7 @@ const DashboardPage = () => {
 
   // Logic: Bookings per day for the last 7 days
   const chartData = useMemo(() => {
-    if (!stats.bookings.length) return [];
+    if (!stats.bookings || !stats.bookings.length) return [];
     
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const last7Days = Array.from({length: 7}, (_, i) => {
@@ -67,6 +79,7 @@ const DashboardPage = () => {
     }).reverse();
 
     stats.bookings.forEach(booking => {
+      if (!booking.startTime) return;
       const bookingDate = booking.startTime.split('T')[0];
       const dayMatch = last7Days.find(d => d.date === bookingDate);
       if (dayMatch) {
@@ -78,9 +91,9 @@ const DashboardPage = () => {
   }, [stats.bookings]);
 
   const activeIncidents = stats.incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'CLOSED');
-  const pendingBookings = stats.bookings.filter(b => b.status === 'PENDING');
+  const pendingApprovals = stats.bookings.filter(b => b.status === 'PENDING');
 
-  if (stats.loading) return <div className="loading-state">Initializing Dashboard...</div>;
+  if (stats.loading) return <div className="loading-state">Initializing Hub...</div>;
 
   return (
     <div className="dashboard-container">
@@ -88,12 +101,18 @@ const DashboardPage = () => {
       <header className="dashboard-header">
         <div>
           <h1>Welcome, {user?.name || user?.email.split('@')[0]} 👋</h1>
-          <p>Here is what's happening on campus today.</p>
+          <p>{isAdmin ? 'Manage global campus operations and approvals.' : 'Your campus activities at a glance.'}</p>
         </div>
         <div className="header-actions">
-          <Link to="/create-booking" className="btn btn-primary">
-            <PlusCircle size={18} /> New Booking
-          </Link>
+          {isAdmin ? (
+             <Link to="/admin" className="btn btn-primary">
+                Review {pendingApprovals.length} Pending
+             </Link>
+          ) : (
+            <Link to="/create-booking" className="btn btn-primary">
+              <PlusCircle size={18} /> New Booking
+            </Link>
+          )}
         </div>
       </header>
 
@@ -103,42 +122,62 @@ const DashboardPage = () => {
           <div className="stat-icon bookings"><Calendar /></div>
           <div className="stat-info">
             <h3>{stats.bookings.length}</h3>
-            <p>Total Bookings</p>
+            <p>{isAdmin ? 'Global Bookings' : 'My Bookings'}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon instances"><AlertCircle /></div>
           <div className="stat-info">
             <h3>{activeIncidents.length}</h3>
-            <p>Active Incidents</p>
+            <p>{isAdmin ? 'Active System Alerts' : 'My Active Issues'}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon notifications"><Bell /></div>
           <div className="stat-info">
             <h3>{stats.notifications.length}</h3>
-            <p>Notifications</p>
+            <p>New Notifications</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon locations"><MapPin /></div>
           <div className="stat-info">
-            <h3>{isAdmin ? 'System wide' : 'User Access'}</h3>
-            <p>{isAdmin ? 'Global Monitor' : 'Personal Activity'}</p>
+            <h3>{isAdmin ? 'Management' : 'User Control'}</h3>
+            <p>{isAdmin ? 'Admin Console' : 'Personal Hub'}</p>
           </div>
         </div>
       </div>
 
       <div className="dashboard-content">
-        {/* Module B: Booking Chart (Logic implemented, view placeholder for Part 2) */}
+        {/* Module B: Booking Chart Integrated */}
         <section className="dashboard-section chart-section">
           <div className="section-header">
             <h2><BarChart3 size={20} /> Booking Insights</h2>
-            <span>Last 7 Days</span>
+            <div style={{fontSize: '0.8rem', color: '#64748b'}}>Past 7 Days Engagement</div>
           </div>
-          <div className="chart-placeholder">
-            {/* Chart will be rendered here in Part 2 */}
-            <p>Weekly booking data processed for {stats.bookings.length} records.</p>
+          <div className="chart-container-wrapper">
+             <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: '#64748b', fontSize: 12}}
+                    dy={10}
+                  />
+                  <YAxis hide />
+                  <Tooltip 
+                    cursor={{fill: 'rgba(226, 232, 240, 0.4)'}}
+                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                  />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={24}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === 6 ? '#4f46e5' : '#818cf8'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+             </ResponsiveContainer>
           </div>
         </section>
 
@@ -146,27 +185,27 @@ const DashboardPage = () => {
         <div className="activity-lists">
           <section className="dashboard-section">
             <div className="section-header">
-              <h2>Recent Bookings</h2>
-              <Link to="/my-bookings" className="view-all">View All <ArrowRight size={14}/></Link>
+              <h2>Recent Activities</h2>
+              <Link to="/my-bookings" className="view-all">Full History <ArrowRight size={14}/></Link>
             </div>
             <div className="list-container">
               {stats.bookings.slice(0, 3).map(booking => (
                 <div key={booking.id} className="list-item">
                   <div className={`status-badge ${booking.status.toLowerCase()}`}></div>
                   <div className="item-details">
-                    <h4>Facility ID: {booking.resourceId}</h4>
-                    <span>{new Date(booking.startTime).toLocaleDateString()}</span>
+                    <h4>{booking.resourceName || `Ref: #${booking.id}`}</h4>
+                    <span>{new Date(booking.startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
                   </div>
                 </div>
               ))}
-              {stats.bookings.length === 0 && <p className="empty-msg">No bookings yet.</p>}
+              {stats.bookings.length === 0 && <p className="empty-msg">No recent activity detected.</p>}
             </div>
           </section>
 
           <section className="dashboard-section">
             <div className="section-header">
-              <h2>Incident Alerts</h2>
-              <Link to="/report-incident" className="view-all">Report New <ArrowRight size={14}/></Link>
+              <h2>Incident Watch</h2>
+              <Link to="/report-incident" className="view-all">Report Issue <ArrowRight size={14}/></Link>
             </div>
             <div className="list-container">
               {stats.incidents.slice(0, 3).map(incident => (
@@ -174,11 +213,11 @@ const DashboardPage = () => {
                   <div className={`priority-indicator ${incident.priority?.toLowerCase() || 'medium'}`}></div>
                   <div className="item-details">
                     <h4>{incident.title}</h4>
-                    <span>{incident.status}</span>
+                    <span>Status: {incident.status}</span>
                   </div>
                 </div>
               ))}
-              {stats.incidents.length === 0 && <p className="empty-msg">No incidents reported.</p>}
+              {stats.incidents.length === 0 && <p className="empty-msg">Smart Campus is currently healthy.</p>}
             </div>
           </section>
         </div>
