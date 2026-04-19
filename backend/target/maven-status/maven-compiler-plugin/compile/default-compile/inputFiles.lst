@@ -2,7 +2,6 @@ D:\PAF\backend\src\main\java\com\smartcampus\controller\ResourceController.java
 D:\PAF\backend\src\main\java\com\smartcampus\controller\IncidentController.java
 D:\PAF\backend\src\main\java\com\smartcampus\controller\DiagnosticController.java
 D:\PAF\backend\src\main\java\com\smartcampus\repository\IncidentRepository.java
-D:\PAF\backend\src\main\java\com\smartcampus\service\FileStorageInterface.java
 D:\PAF\backend\src\main\java\com\smartcampus\service\BookingService.java
 D:\PAF\backend\src\main\java\com\smartcampus\repository\ResourceRepository.java
 D:\PAF\backend\src\main\java\com\smartcampus\entity\Comment.java
