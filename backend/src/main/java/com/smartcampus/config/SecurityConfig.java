@@ -31,7 +31,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 // ---- PUBLIC endpoints (no login needed) ----
-                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/public/**", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/facilities/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/facilities/search").permitAll()
 
@@ -42,8 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/facilities/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/facilities/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/facilities/*/status").hasRole("ADMIN")
-
-                // ---- Any authenticated user ----
+                .requestMatchers("/api/bookings/*/status").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
