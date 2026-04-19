@@ -79,4 +79,22 @@ public class MaintenanceController {
             @RequestParam String technicianId) {
         return ResponseEntity.ok(maintenanceService.assignTechnician(id, technicianId));
     }
+
+    @PatchMapping("/tickets/{id}/feedback")
+    public ResponseEntity<?> submitFeedback(
+            @PathVariable Long id,
+            @RequestParam("comment") String comment,
+            @RequestParam("rating") Integer rating,
+            Authentication authentication) {
+        
+        MaintenanceTicket ticket = maintenanceService.getTicketById(id);
+        String currentUserId = authentication != null ? authentication.getName() : "anonymous";
+        
+        // Ownership Check: only the reporter can give feedback
+        if (!ticket.getReporterId().equals(currentUserId)) {
+            return ResponseEntity.status(403).body("Only the original reporter can submit feedback for this ticket.");
+        }
+        
+        return ResponseEntity.ok(maintenanceService.submitFeedback(id, comment, rating));
+    }
 }

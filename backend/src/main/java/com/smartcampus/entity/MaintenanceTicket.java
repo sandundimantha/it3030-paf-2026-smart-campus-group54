@@ -48,6 +48,13 @@ public class MaintenanceTicket {
 
     private LocalDateTime resolvedAt;
 
+    @Column(length = 1000)
+    private String feedbackComment;
+
+    private Integer feedbackRating; // 1-5 stars
+
+    private LocalDateTime feedbackAt;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

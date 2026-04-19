@@ -77,4 +77,19 @@ public class MaintenanceService {
         ticket.setStatus(MaintenanceTicket.TicketStatus.IN_PROGRESS);
         return maintenanceRepository.save(ticket);
     }
+
+    @Transactional
+    public MaintenanceTicket submitFeedback(Long id, String comment, Integer rating) {
+        MaintenanceTicket ticket = getTicketById(id);
+        
+        if (ticket.getStatus() != MaintenanceTicket.TicketStatus.RESOLVED) {
+            throw new RuntimeException("Cannot submit feedback until the ticket is marked as RESOLVED.");
+        }
+        
+        ticket.setFeedbackComment(comment);
+        ticket.setFeedbackRating(rating);
+        ticket.setFeedbackAt(java.time.LocalDateTime.now());
+        
+        return maintenanceRepository.save(ticket);
+    }
 }
