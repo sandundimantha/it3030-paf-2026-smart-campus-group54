@@ -29,7 +29,12 @@ public class FileStorageService {
             String originalFileName = file.getOriginalFilename();
             String fileExtension = "";
             if (originalFileName != null && originalFileName.contains(".")) {
-                fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
+            }
+            
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new RuntimeException("Invalid file type. Only images are allowed.");
             }
             
             // Generate a unique filename
