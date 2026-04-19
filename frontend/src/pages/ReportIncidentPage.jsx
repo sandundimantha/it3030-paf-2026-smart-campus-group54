@@ -1,20 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { incidentService } from '../services/incidentService';
-import { AlertTriangle, MapPin, UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
+import { maintenanceService } from '../services/maintenanceService';
+import { AlertTriangle, MapPin, UploadCloud, CheckCircle, AlertCircle, X } from 'lucide-react';
 
 export default function ReportIncidentPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    title: '',
+    category: 'Electrical',
     description: '',
-    location: ''
+    location: '',
+    priority: 'MEDIUM'
   });
   
   const [imageFiles, setImageFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const categories = ['Electrical', 'Plumbing', 'IT Support', 'Furniture', 'Security', 'Cleaning', 'Other'];
+  const priorities = [
+    { value: 'LOW', label: 'Low', color: '#10b981' },
+    { value: 'MEDIUM', label: 'Medium', color: '#f59e0b' },
+    { value: 'HIGH', label: 'High', color: '#ef4444' }
+  ];
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,22 +33,24 @@ export default function ReportIncidentPage() {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     
-    // Validate maximum 3 files
-    if (files.length > 3) {
-      setError("You can only upload a maximum of 3 tracking images.");
-      e.target.value = null; // Clear input
+    if (files.length + imageFiles.length > 3) {
+      setError("Maximum 3 images allowed.");
       return;
     }
     
-    // Validate file sizes (Max 5MB per assignment constraints)
-    const validFiles = files.filter(f => f.size <= 5 * 1024 * 1024);
-    if (validFiles.length !== files.length) {
-      setError("Some files exceed the 5MB size limit and were rejected.");
-    } else {
-      setError(null);
-    }
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setPreviews(prev => [...prev, ...newPreviews]);
+    setImageFiles(prev => [...prev, ...files]);
+    setError(null);
+  };
 
-    setImageFiles(validFiles);
+  const removeImage = (index) => {
+    const newFiles = [...imageFiles];
+    const newPreviews = [...previews];
+    newFiles.splice(index, 1);
+    newPreviews.splice(index, 1);
+    setImageFiles(newFiles);
+    setPreviews(newPreviews);
   };
 
   const handleSubmit = async (e) => {
@@ -49,63 +60,82 @@ export default function ReportIncidentPage() {
     setSuccess(false);
 
     try {
-      await incidentService.createIncident(formData, imageFiles);
+      await maintenanceService.reportIssue(formData, imageFiles);
       setSuccess(true);
-      setTimeout(() => navigate('/'), 2000); // Route somewhere meaningful
+      setTimeout(() => navigate('/maintenance-hub'), 2000); 
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred while linking the incident report.');
+      console.error("Report error:", err);
+      setError(err.response?.data?.message || 'Failed to report incident. Please check your connection.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container animate-fade-in" style={{ maxWidth: '600px', marginTop: '3rem' }}>
-      <div className="card" style={{ borderTop: '4px solid var(--danger-color)' }}>
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
-          <AlertTriangle size={24} color="var(--danger-color)" />
+    <div className="container animate-fade-in" style={{ maxWidth: '700px', marginTop: '3rem', paddingBottom: '4rem' }}>
+      <div className="card" style={{ borderTop: '5px solid #ef4444', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#1e293b', fontSize: '1.75rem' }}>
+          <AlertTriangle size={32} color="#ef4444" />
           Report Campus Incident
         </h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
-          Notice a maintenance issue, security concern, or IT failure? Report it here with up to 3 image contexts.
+        <p style={{ color: '#64748b', marginBottom: '2rem' }}>
+          Help us maintain a safe campus by reporting issues. Our team will look into it promptly.
         </p>
 
         {error && (
-          <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={18} />
-            {error}
+          <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>
+            <AlertCircle size={18} /> {error}
           </div>
         )}
 
         {success && (
-          <div className="alert alert-success" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckCircle size={18} />
-            Incident successfully reported! Our teams will look into it.
+          <div className="alert alert-success" style={{ marginBottom: '1.5rem' }}>
+            <CheckCircle size={18} /> Incident reported! Redirecting to hub...
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Incident Title</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              placeholder="e.g. Broken Projector in Hall 3"
-              className="input-field"
-              value={formData.title}
-              onChange={handleChange}
-              required
-            />
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label>Category</label>
+              <select name="category" value={formData.category} onChange={handleChange} className="input-field">
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Priority</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {priorities.map(p => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, priority: p.value })}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem',
+                      borderRadius: '0.5rem',
+                      border: '2px solid',
+                      borderColor: formData.priority === p.value ? p.color : '#e2e8f0',
+                      backgroundColor: formData.priority === p.value ? `${p.color}22` : 'transparent',
+                      color: formData.priority === p.value ? p.color : '#64748b',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="location">Location <MapPin size={14} style={{ display: 'inline', marginLeft: '2px' }} /></label>
+            <label>Location <MapPin size={14} style={{ display: 'inline', opacity: 0.7 }} /></label>
             <input
               type="text"
-              id="location"
               name="location"
-              placeholder="Specific building or room number"
+              placeholder="e.g. Computing Faculty Room 302"
               className="input-field"
               value={formData.location}
               onChange={handleChange}
@@ -114,12 +144,11 @@ export default function ReportIncidentPage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Detailed Description</label>
+            <label>Detailed Description</label>
             <textarea
-              id="description"
               name="description"
               rows={4}
-              placeholder="Provide as much context as possible..."
+              placeholder="What seems to be the problem?"
               className="input-field"
               value={formData.description}
               onChange={handleChange}
@@ -127,35 +156,51 @@ export default function ReportIncidentPage() {
             />
           </div>
 
-          <div className="form-group" style={{ 
-            marginTop: '1.5rem', 
-            padding: '1.5rem', 
-            border: '2px dashed var(--border-color)', 
-            borderRadius: '0.5rem',
-            textAlign: 'center',
-            backgroundColor: 'var(--bg-color)'
-          }}>
-            <UploadCloud size={32} color="var(--text-muted)" style={{ margin: '0 auto 0.5rem' }} />
-            <label htmlFor="images" style={{ cursor: 'pointer', color: 'var(--primary-color)', fontWeight: '600' }}>
-              Select visual evidence attachments
-            </label>
-            <input
-              type="file"
-              id="images"
-              name="images"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              PNG, JPG, up to 5MB. Maximum 3 images. <br />
-              <b>Selected: {imageFiles.length}</b>
-            </p>
+          <div className="form-group">
+            <label>Evidence Photos (Max 3)</label>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(4, 1fr)', 
+              gap: '0.75rem',
+              marginTop: '0.5rem' 
+            }}>
+              {previews.map((src, idx) => (
+                <div key={idx} style={{ position: 'relative', aspectRatio: '1/1' }}>
+                  <img src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.5rem' }} alt="" />
+                  <button 
+                    type="button" 
+                    onClick={() => removeImage(idx)}
+                    style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+              
+              {imageFiles.length < 3 && (
+                <label style={{ 
+                  aspectRatio: '1/1', 
+                  border: '2px dashed #cbd5e1', 
+                  borderRadius: '0.5rem', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  fontSize: '0.75rem',
+                  gap: '0.25rem'
+                }}>
+                  <UploadCloud size={20} />
+                  Add Photo
+                  <input type="file" accept="image/*" multiple onChange={handleFileChange} style={{ display: 'none' }} />
+                </label>
+              )}
+            </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', backgroundColor: 'var(--danger-color)' }} disabled={loading}>
-            {loading ? 'Submitting Reference...' : 'Submit Incident Ticket'}
+          <button type="submit" className="btn btn-primary" style={{ height: '3.5rem', fontSize: '1.1rem', backgroundColor: '#ef4444', marginTop: '1rem' }} disabled={loading}>
+            {loading ? 'Submitting Report...' : 'Launch Incident Response'}
           </button>
         </form>
       </div>
