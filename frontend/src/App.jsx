@@ -1,76 +1,93 @@
-import React, { useState } from 'react';
-import { Layout, Button, Avatar, Space, Typography, Dropdown } from 'antd';
-import {
-  UserOutlined, CrownOutlined, SwapOutlined,
-  BankOutlined
-} from '@ant-design/icons';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+import CreateBookingPage from './pages/CreateBookingPage';
+import UserBookingsPage from './pages/UserBookingsPage';
+import AdminApprovalPage from './pages/AdminApprovalPage';
+import ReportIncidentPage from './pages/ReportIncidentPage';
+import LoginPage from './pages/LoginPage';
+import ProfilePage from './pages/ProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import NotificationPanel from './components/NotificationPanel';
 import FacilitiesPage from './pages/FacilitiesPage';
 import FacilityList from './pages/FacilityList';
 import './App.css';
+import { Calendar, LayoutDashboard, AlertTriangle } from 'lucide-react';
 
-const { Header } = Layout;
-const { Text } = Typography;
+function Navigation() {
+  const location = useLocation();
 
-function App() {
-  const [currentView, setCurrentView] = useState('USER');
-
-  const roleItems = [
-    {
-      key: 'USER',
-      label: 'Student View',
-      icon: <UserOutlined />,
-    },
-    {
-      key: 'ADMIN',
-      label: 'Admin Dashboard',
-      icon: <CrownOutlined />,
-    },
-  ];
+  if (location.pathname === '/login') {
+    return null;
+  }
 
   return (
-    <div className="App">
-      <Header className="app-header">
-        <div className="header-left">
-          <div className="header-logo">
-            <BankOutlined className="logo-icon" />
-            <span className="logo-text">Smart Campus</span>
-          </div>
-          <div className="header-divider" />
-          <Text className="header-module">Facilities & Assets</Text>
+    <nav className="navbar">
+      <div className="container nav-content">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 'bold', fontSize: '1.25rem', color: 'var(--primary-color)' }}>
+          <Calendar />
+          Smart Campus Hub
         </div>
-
-        <div className="header-right">
-          <Dropdown
-            menu={{
-              items: roleItems,
-              onClick: ({ key }) => setCurrentView(key),
-              selectable: true,
-              selectedKeys: [currentView],
-            }}
-            trigger={['click']}
-          >
-            <Button className="role-switcher-btn">
-              <Space>
-                <Avatar
-                  size={28}
-                  icon={currentView === 'ADMIN' ? <CrownOutlined /> : <UserOutlined />}
-                  className={currentView === 'ADMIN' ? 'avatar-admin' : 'avatar-student'}
-                />
-                <span className="role-label">
-                  {currentView === 'ADMIN' ? 'Admin' : 'Student'}
-                </span>
-                <SwapOutlined className="swap-icon" />
-              </Space>
-            </Button>
-          </Dropdown>
+        <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Dashboard</Link>
+          <Link to="/create-booking" className={`nav-link ${location.pathname === '/create-booking' ? 'active' : ''}`}>Book Resource</Link>
+          <Link to="/report-incident" className={`nav-link ${location.pathname === '/report-incident' ? 'active' : ''}`}>Report Incident</Link>
+          <Link to="/my-bookings" className={`nav-link ${location.pathname === '/my-bookings' ? 'active' : ''}`}>My Bookings</Link>
+          <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>Admin Approval</Link>
+          <Link to="/notifications" className={`nav-link ${location.pathname === '/notifications' ? 'active' : ''}`}>Notifications</Link>
+          <Link to="/profile" className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}>Profile</Link>
+          <Link to="/admin/users" className={`nav-link ${location.pathname === '/admin/users' ? 'active' : ''}`}>Manage Users</Link>
+          <NotificationPanel />
         </div>
-      </Header>
+      </div>
+    </nav>
+  );
+}
 
-      <div className="app-content">
-        {currentView === 'ADMIN' ? <FacilitiesPage /> : <FacilityList />}
+function WelcomePage() {
+  return (
+    <div className="container animate-fade-in" style={{ marginTop: '3rem', textAlign: 'center' }}>
+      <LayoutDashboard size={48} color="var(--primary-color)" style={{ margin: '0 auto 1.5rem' }} />
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Welcome to Smart Campus Hub</h1>
+      <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto 2rem' }}>
+        Seamlessly book lecture halls, lab equipment, and other campus resources.
+        Track your bookings and manage your campus experience perfectly.
+      </p>
+      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+        <Link to="/create-booking" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>
+          Get Started
+        </Link>
+        <Link to="/report-incident" className="btn btn-danger" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <AlertTriangle size={18} /> Report Issue
+        </Link>
       </div>
     </div>
   );
 }
 
+function App() {
+  return (
+    <Router>
+      <div className="app-container">
+        <Navigation />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<WelcomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/create-booking" element={<CreateBookingPage />} />
+            <Route path="/report-incident" element={<ReportIncidentPage />} />
+            <Route path="/my-bookings" element={<UserBookingsPage />} />
+            <Route path="/admin" element={<AdminApprovalPage />} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="/facilities" element={<FacilityList />} />
+            <Route path="/admin/facilities" element={<AdminRoute><FacilitiesPage /></AdminRoute>} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
+  );
+}
 export default App;

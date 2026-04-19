@@ -20,6 +20,7 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Booking createBooking(BookingRequest request) {
@@ -64,5 +65,47 @@ public class BookingService {
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
+    }
+
+    public List<Booking> getBookingsByUserId(String userId) {
+        return bookingRepository.findByUserId(userId);
+    }
+
+    @Transactional
+    public Booking cancelBooking(Long id, String userId) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + id));
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new BookingConflictException("You cannot cancel a booking that does not belong to you.");
+        }
+
+        if (booking.getStatus() != Booking.BookingStatus.PENDING && booking.getStatus() != Booking.BookingStatus.APPROVED) {
+            throw new BookingConflictException("Only pending or approved bookings can be cancelled.");
+        }
+
+        booking.setStatus(Booking.BookingStatus.CANCELLED);
+        return bookingRepository.save(booking);
+    }
+
+    @Transactional
+    public Booking updateBookingStatus(Long id, Booking.BookingStatus status, String rejectionReason, String adminId) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + id));
+
+        if (booking.getStatus() != Booking.BookingStatus.PENDING) {
+            throw new BookingConflictException("Only pending bookings can be approved or rejected.");
+        }
+
+        booking.setStatus(status);
+        if (status == Booking.BookingStatus.REJECTED) {
+            booking.setRejectionReason(rejectionReason);
+            notificationService.createNotification(booking.getUserId(), "Your booking for resource " + booking.getResourceId() + " was REJECTED. Reason: " + rejectionReason);
+        } else if (status == Booking.BookingStatus.APPROVED) {
+            notificationService.createNotification(booking.getUserId(), "Your booking for resource " + booking.getResourceId() + " was APPROVED.");
+        }
+        booking.setApprovedBy(adminId);
+
+        return bookingRepository.save(booking);
     }
 }
