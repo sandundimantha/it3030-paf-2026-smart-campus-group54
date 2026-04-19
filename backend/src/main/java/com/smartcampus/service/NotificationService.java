@@ -18,7 +18,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 
     @Transactional
-    public Notification createNotification(String userId, String message, Notification.NotificationType type) {
+    public Notification createNotification(Long userId, String message, Notification.NotificationType type) {
         Notification notification = Notification.builder()
                 .userId(userId)
                 .message(message)
@@ -30,24 +30,24 @@ public class NotificationService {
     }
 
     @Transactional
-    public Notification createNotification(String userId, String message) {
+    public Notification createNotification(Long userId, String message) {
         return createNotification(userId, message, Notification.NotificationType.GENERAL);
     }
 
-    public List<Notification> getUserNotifications(String userId) {
+    public List<Notification> getUserNotifications(Long userId) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public List<Notification> getUnreadNotifications(String userId) {
+    public List<Notification> getUnreadNotifications(Long userId) {
         return notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
     }
 
-    public long getUnreadCount(String userId) {
+    public long getUnreadCount(Long userId) {
         return notificationRepository.countByUserIdAndReadFalse(userId);
     }
 
     @Transactional
-    public void markAsRead(Long notificationId, String userId) {
+    public void markAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found with ID: " + notificationId));
 
@@ -61,7 +61,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAllAsRead(String userId) {
+    public void markAllAsRead(Long userId) {
         List<Notification> unread = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
         unread.forEach(n -> n.setRead(true));
         notificationRepository.saveAll(unread);
@@ -69,7 +69,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(Long notificationId, String userId) {
+    public void deleteNotification(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found with ID: " + notificationId));
 

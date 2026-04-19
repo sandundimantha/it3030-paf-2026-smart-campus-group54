@@ -18,7 +18,7 @@ public class IncidentService {
     private final NotificationService notificationService;
 
     @Transactional
-    public Incident createIncident(String title, String description, String location, String userId, List<MultipartFile> images) {
+    public Incident createIncident(String title, String description, String location, Long userId, List<MultipartFile> images) {
         
         Incident incident = Incident.builder()
                 .title(title)
@@ -58,7 +58,7 @@ public class IncidentService {
         return incidentRepository.findAll();
     }
 
-    public List<Incident> getUserIncidents(String userId) {
+    public List<Incident> getUserIncidents(Long userId) {
         return incidentRepository.findByReportedBy(userId);
     }
 }

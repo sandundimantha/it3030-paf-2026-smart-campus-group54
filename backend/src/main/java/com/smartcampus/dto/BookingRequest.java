@@ -13,7 +13,7 @@ public class BookingRequest {
     private Long resourceId;
 
     @NotNull(message = "User ID is required")
-    private String userId;
+    private Long userId;
 
     @NotNull(message = "Start time is required")
     private LocalDateTime startTime;

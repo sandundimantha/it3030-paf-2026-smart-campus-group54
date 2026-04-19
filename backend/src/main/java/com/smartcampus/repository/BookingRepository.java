@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    List<Booking> findByUserId(String userId);
+    List<Booking> findByUserId(Long userId);
 
     @Query("SELECT b FROM Booking b WHERE b.resourceId = :resourceId " +
            "AND b.status != 'REJECTED' AND b.status != 'CANCELLED' " +
