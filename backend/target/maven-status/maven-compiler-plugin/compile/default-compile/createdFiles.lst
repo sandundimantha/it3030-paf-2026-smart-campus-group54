@@ -54,10 +54,12 @@ com\smartcampus\dto\BookingRequest.class
 com\smartcampus\service\ResourceServiceImpl.class
 com\smartcampus\entity\AppUser$AppUserBuilder.class
 com\smartcampus\exception\ResourceNotFoundException.class
+com\smartcampus\controller\AuthController.class
 com\smartcampus\dto\StatusUpdateRequest.class
 com\smartcampus\entity\Notification$NotificationBuilder.class
 com\smartcampus\OperationsHubApplication.class
 com\smartcampus\controller\IncidentController.class
+com\smartcampus\security\CustomUserDetailsService.class
 com\smartcampus\service\BookingService.class
 com\smartcampus\service\NotificationService.class
 com\smartcampus\entity\Booking.class
