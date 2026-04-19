@@ -1,20 +1,37 @@
-# Java
+# ── Java / Maven ─────────────────
 target/
 backend/target/
 *.class
 *.jar
 *.war
 *.ear
+*.zip
+*.tar.gz
+*.rar
 
-# Maven
-.mvn/
-mvnw
-mvnw.cmd
-.factorypath
+# ── Spring Boot ───────────────────
+backend/.mvn/wrapper/maven-wrapper.jar
+HELP.md
 
-# IDEs
-.idea/
+# ── Node / React / Vite ──────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+dist/
+dist-ssr
+.npm
+*.local
+
+# ── Environment & Secrets ────────
+.env
+.env.*
+*.env
+application-local.properties
+
+# ── IDE / Editor ─────────────────
 .vscode/
+.idea/
 *.iml
 *.iws
 *.ipr
@@ -24,26 +41,14 @@ mvnw.cmd
 .springBeans
 .sts4-cache
 
-# Node / Frontend
-node_modules/
-dist/
-dist-ssr
-*.local
-frontend/node_modules/
-frontend/dist/
+# ── OS ───────────────────────────
+.DS_Store
+Thumbs.db
 
-# Logs
+# ── Logs ─────────────────────────
 *.log
 logs/
 log.txt
 status.txt
 backend/boot_log.txt
 backend/compile_log.txt
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Env
-.env
-.env.local

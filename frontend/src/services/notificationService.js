@@ -1,13 +1,28 @@
 import api from './api';
 
-export const notificationService = {
+const notificationService = {
   getUserNotifications: async () => {
     const response = await api.get('/notifications');
     return response.data;
   },
 
+  getUnreadCount: async () => {
+    const response = await api.get('/notifications/unread-count');
+    return response.data.count;
+  },
+
   markAsRead: async (id) => {
-    const response = await api.put(`/notifications/${id}/read`);
-    return response.data;
-  }
+    await api.patch(`/notifications/${id}/read`);
+  },
+
+  markAllAsRead: async () => {
+    await api.patch('/notifications/read-all');
+  },
+
+  deleteNotification: async (id) => {
+    await api.delete(`/notifications/${id}`);
+  },
 };
+
+export { notificationService };
+export default notificationService;

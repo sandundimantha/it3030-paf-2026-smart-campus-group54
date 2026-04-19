@@ -9,31 +9,28 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "app_users")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification {
+public class AppUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String userId;
+    @Column(unique = true, nullable = false)
+    private String email;
 
-    @Column(nullable = false, length = 500)
-    private String message;
+    private String name;
+
+    private String pictureUrl; // Google profile photo
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private NotificationType type = NotificationType.GENERAL;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean isRead = false;
+    private UserRole role = UserRole.USER;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -43,12 +40,7 @@ public class Notification {
         createdAt = LocalDateTime.now();
     }
 
-    public enum NotificationType {
-        BOOKING_APPROVED,
-        BOOKING_REJECTED,
-        BOOKING_CANCELLED,
-        TICKET_STATUS_CHANGED,
-        NEW_COMMENT,
-        GENERAL
+    public enum UserRole {
+        USER, ADMIN
     }
 }
