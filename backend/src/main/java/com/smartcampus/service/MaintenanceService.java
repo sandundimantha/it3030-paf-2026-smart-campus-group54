@@ -27,9 +27,14 @@ public class MaintenanceService {
                     .filter(file -> !file.isEmpty())
                     .limit(3) // Cap at 3 images as per requirement
                     .map(file -> {
-                        String fileName = fileStorageService.storeFile(file);
+                        String originalName = file.getOriginalFilename();
+                        String extension = originalName != null && originalName.contains(".") 
+                            ? originalName.substring(originalName.lastIndexOf(".")) : "";
+                        String uniquePath = "maintenance/" + java.util.UUID.randomUUID().toString() + extension;
+                        
+                        String imageUrl = fileStorageService.uploadFile(file, uniquePath);
                         return MaintenanceImage.builder()
-                                .imageUrl(fileName)
+                                .imageUrl(imageUrl)
                                 .ticket(ticket)
                                 .build();
                     })
@@ -40,8 +45,12 @@ public class MaintenanceService {
         return maintenanceRepository.save(ticket);
     }
 
-    public List<MaintenanceTicket> getAllTickets() {
-        return maintenanceRepository.findAll();
+    public List<MaintenanceTicket> getTicketsForUser(String reporterId, boolean isAdmin) {
+        if (isAdmin) {
+            return maintenanceRepository.findAllSorted();
+        } else {
+            return maintenanceRepository.findByReporterIdOrderByCreatedAtDesc(reporterId);
+        }
     }
 
     public MaintenanceTicket getTicketById(Long id) {

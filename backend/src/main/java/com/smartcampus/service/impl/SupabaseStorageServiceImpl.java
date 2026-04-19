@@ -8,9 +8,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import org.springframework.context.annotation.Primary;
 import java.io.IOException;
 
 @Service
+@Primary
 public class SupabaseStorageServiceImpl implements FileStorageService {
 
     private final WebClient webClient;

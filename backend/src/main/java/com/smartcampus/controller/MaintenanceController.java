@@ -41,8 +41,12 @@ public class MaintenanceController {
     }
 
     @GetMapping("/tickets")
-    public ResponseEntity<List<MaintenanceTicket>> getAllTickets() {
-        return ResponseEntity.ok(maintenanceService.getAllTickets());
+    public ResponseEntity<List<MaintenanceTicket>> getAllTickets(Authentication authentication) {
+        String reporterId = authentication != null ? authentication.getName() : "anonymous";
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        return ResponseEntity.ok(maintenanceService.getTicketsForUser(reporterId, isAdmin));
     }
 
     @GetMapping("/tickets/{id}")
