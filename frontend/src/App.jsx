@@ -10,6 +10,8 @@ import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import NotificationPanel from './components/NotificationPanel';
+import FacilitiesPage from './pages/FacilitiesPage';
+import FacilityList from './pages/FacilityList';
 import './App.css';
 import { Calendar, LayoutDashboard, AlertTriangle } from 'lucide-react';
 
@@ -80,11 +82,12 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="/facilities" element={<FacilityList />} />
+            <Route path="/admin/facilities" element={<AdminRoute><FacilitiesPage /></AdminRoute>} />
           </Routes>
         </main>
       </div>
     </Router>
   );
 }
-
 export default App;

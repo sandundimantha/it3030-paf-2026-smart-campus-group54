@@ -26,15 +26,18 @@ public class BookingService {
     public Booking createBooking(BookingRequest request) {
         // 1. Check if resource exists
         Resource resource = resourceRepository.findById(request.getResourceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + request.getResourceId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Resource not found with ID: " + request.getResourceId()));
 
         // 2. Status Validation: Check if resource is ACTIVE
         if (resource.getStatus() != Resource.ResourceStatus.ACTIVE) {
-            throw new BookingConflictException("Resource is currently " + resource.getStatus() + " and cannot be booked.");
+            throw new BookingConflictException(
+                    "Resource is currently " + resource.getStatus() + " and cannot be booked.");
         }
 
         // 3. Logic Validation: Check for end time after start time
-        if (request.getEndTime().isBefore(request.getStartTime()) || request.getEndTime().isEqual(request.getStartTime())) {
+        if (request.getEndTime().isBefore(request.getStartTime())
+                || request.getEndTime().isEqual(request.getStartTime())) {
             throw new BookingConflictException("End time must be after start time.");
         }
 
@@ -42,8 +45,7 @@ public class BookingService {
         List<Booking> overlapping = bookingRepository.findOverlappingBookings(
                 request.getResourceId(),
                 request.getStartTime(),
-                request.getEndTime()
-        );
+                request.getEndTime());
 
         if (!overlapping.isEmpty()) {
             throw new BookingConflictException("Resource is already booked for the requested time range.");

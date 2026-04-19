@@ -30,9 +30,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/public/**", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/facilities/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/facilities/search").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/resources/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/resources/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/users/*/role").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/facilities").hasRole("ADMIN")
@@ -65,7 +70,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://localhost:5175",
+                "http://localhost:5176"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
