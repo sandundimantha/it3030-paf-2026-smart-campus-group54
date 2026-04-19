@@ -44,6 +44,10 @@ public class MaintenanceTicket {
     @Column(nullable = false)
     private String reporterId;
 
+    private String technicianId;
+
+    private LocalDateTime resolvedAt;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

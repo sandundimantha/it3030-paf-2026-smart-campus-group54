@@ -53,6 +53,19 @@ public class MaintenanceService {
     public MaintenanceTicket updateStatus(Long id, MaintenanceTicket.TicketStatus status) {
         MaintenanceTicket ticket = getTicketById(id);
         ticket.setStatus(status);
+        
+        if (status == MaintenanceTicket.TicketStatus.RESOLVED) {
+            ticket.setResolvedAt(java.time.LocalDateTime.now());
+        }
+        
+        return maintenanceRepository.save(ticket);
+    }
+
+    @Transactional
+    public MaintenanceTicket assignTechnician(Long id, String technicianId) {
+        MaintenanceTicket ticket = getTicketById(id);
+        ticket.setTechnicianId(technicianId);
+        ticket.setStatus(MaintenanceTicket.TicketStatus.IN_PROGRESS);
         return maintenanceRepository.save(ticket);
     }
 }
