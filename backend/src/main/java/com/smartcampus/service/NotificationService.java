@@ -39,11 +39,11 @@ public class NotificationService {
     }
 
     public List<Notification> getUnreadNotifications(String userId) {
-        return notificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+        return notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
     }
 
     public long getUnreadCount(String userId) {
-        return notificationRepository.countByUserIdAndIsReadFalse(userId);
+        return notificationRepository.countByUserIdAndReadFalse(userId);
     }
 
     @Transactional
@@ -62,7 +62,7 @@ public class NotificationService {
 
     @Transactional
     public void markAllAsRead(String userId) {
-        List<Notification> unread = notificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+        List<Notification> unread = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
         unread.forEach(n -> n.setRead(true));
         notificationRepository.saveAll(unread);
         log.info("Marked {} notifications as read for user {}", unread.size(), userId);
