@@ -16,7 +16,7 @@ export const maintenanceService = {
       }
     }
 
-    const response = await api.post('/api/maintenance/report', formData, {
+    const response = await api.post('/maintenance/report', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
@@ -24,25 +24,25 @@ export const maintenanceService = {
 
   // View tickets (Function 3 - handles role-based logic automatically in BE)
   getAllTickets: async () => {
-    const response = await api.get('/api/maintenance/tickets');
+    const response = await api.get('/maintenance/tickets');
     return response.data;
   },
 
   // Update status (Function 2)
   updateStatus: async (id, status) => {
-    const response = await api.patch(`/api/maintenance/tickets/${id}/status?status=${status}`);
+    const response = await api.patch(`/maintenance/tickets/${id}/status?status=${status}`);
     return response.data;
   },
 
   // Assign Technician (Function 2 enhancement)
   assignTechnician: async (id, technicianId) => {
-    const response = await api.patch(`/api/maintenance/tickets/${id}/assign?technicianId=${technicianId}`);
+    const response = await api.patch(`/maintenance/tickets/${id}/assign?technicianId=${technicianId}`);
     return response.data;
   },
 
   // Submit Feedback (Function 4)
   submitFeedback: async (id, comment, rating) => {
-    const response = await api.patch(`/api/maintenance/tickets/${id}/feedback`, null, {
+    const response = await api.patch(`/maintenance/tickets/${id}/feedback`, null, {
       params: { comment, rating }
     });
     return response.data;

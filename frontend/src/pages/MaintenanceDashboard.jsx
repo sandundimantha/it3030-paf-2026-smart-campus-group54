@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { maintenanceService } from '../services/maintenanceService';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   AlertTriangle, 
@@ -13,6 +14,7 @@ import {
 
 export default function MaintenanceDashboard() {
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -34,7 +36,7 @@ export default function MaintenanceDashboard() {
     try {
       setLoading(true);
       const data = await maintenanceService.getAllTickets();
-      setTickets(data);
+      setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Failed to load tickets. Please try again.");
     } finally {
@@ -75,9 +77,9 @@ export default function MaintenanceDashboard() {
     }
   };
 
-  const filteredTickets = filter === 'ALL' 
-    ? tickets 
-    : tickets.filter(t => t.status === filter);
+  const filteredTickets = (Array.isArray(tickets) ? tickets : []).filter(t => 
+    filter === 'ALL' || t.status === filter
+  );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -111,26 +113,50 @@ export default function MaintenanceDashboard() {
             {isAdmin ? "Manage campus-wide incident reports and technician assignments." : "Track your reported issues and provide feedback on fixes."}
           </p>
         </div>
-        
-        <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.25rem', borderRadius: '0.75rem' }}>
-          {['ALL', 'PENDING', 'IN_PROGRESS', 'RESOLVED'].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                backgroundColor: filter === f ? 'white' : 'transparent',
-                color: filter === f ? '#1e293b' : '#64748b',
-                fontWeight: filter === f ? '600' : '400',
-                boxShadow: filter === f ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                cursor: 'pointer'
+
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {!isAdmin && (
+            <button 
+              onClick={() => navigate('/report-incident')}
+              className="btn"
+              style={{ 
+                backgroundColor: '#ef4444', 
+                color: 'white', 
+                padding: '0.6rem 1.25rem', 
+                borderRadius: '0.6rem', 
+                border: 'none', 
+                fontWeight: '700', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)'
               }}
             >
-              {f.replace('_', ' ')}
+              <AlertTriangle size={18} /> Report New Incident
             </button>
-          ))}
+          )}
+          
+          <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.25rem', borderRadius: '0.75rem' }}>
+            {['ALL', 'PENDING', 'IN_PROGRESS', 'RESOLVED'].map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  backgroundColor: filter === f ? 'white' : 'transparent',
+                  color: filter === f ? '#1e293b' : '#64748b',
+                  fontWeight: filter === f ? '600' : '400',
+                  boxShadow: filter === f ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                {f.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
