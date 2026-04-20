@@ -13,9 +13,26 @@ export default function LoginPage() {
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
+  const validateEmail = (email) => {
+    return String(email)
+      .toLowerCase()
+      .match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+  };
+
   const handleLogin = async e => {
     e.preventDefault();
     setError('');
+
+    // Pre-flight frontend validation
+    if (!form.email || !form.password) {
+      setError('Please fill in both email and password.');
+      return;
+    }
+    if (!validateEmail(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     setLoading(true);
     try {
       await login(form.email, form.password);
@@ -30,6 +47,21 @@ export default function LoginPage() {
   const handleRegister = async e => {
     e.preventDefault();
     setError('');
+
+    // Pre-flight frontend validation for registration
+    if (!form.name || form.name.trim().length < 3) {
+      setError('Full Name must be at least 3 characters long.');
+      return;
+    }
+    if (!validateEmail(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (!form.password || form.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     setLoading(true);
     try {
       const { register } = await import('../context/AuthContext').then(m => {
@@ -39,12 +71,12 @@ export default function LoginPage() {
       // Import api directly for register
       const api = (await import('../services/api')).default;
       await api.post('/auth/register', {
-        email: form.email,
-        name: form.name,
+        email: form.email.trim(),
+        name: form.name.trim(),
         password: form.password,
       });
       // Auto-login after successful registration
-      await login(form.email, form.password);
+      await login(form.email.trim(), form.password);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');

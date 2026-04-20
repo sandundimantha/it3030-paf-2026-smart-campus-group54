@@ -6,6 +6,11 @@ export default function AdminApprovalPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Rejection Box State
+  const [rejectingId, setRejectingId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     fetchBookings();
@@ -32,15 +37,30 @@ export default function AdminApprovalPage() {
     }
   };
 
-  const handleReject = async (id) => {
-    const reason = window.prompt("Please provide a rejection reason:");
-    if (reason === null) return; // User cancelled prompt
+  const triggerReject = (id) => {
+    setRejectingId(id);
+    setRejectReason('');
+    setValidationError('');
+  };
+
+  const cancelReject = () => {
+    setRejectingId(null);
+    setRejectReason('');
+    setValidationError('');
+  };
+
+  const submitReject = async () => {
+    if (!rejectReason || rejectReason.trim().length < 5) {
+      setValidationError("Reason must be at least 5 characters to reject.");
+      return;
+    }
 
     try {
-      await bookingService.updateBookingStatus(id, { 
+      await bookingService.updateBookingStatus(rejectingId, { 
         status: 'REJECTED',
-        rejectionReason: reason || 'Not specified'
+        rejectionReason: rejectReason.trim()
       });
+      setRejectingId(null);
       fetchBookings();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to reject booking.');
@@ -94,11 +114,31 @@ export default function AdminApprovalPage() {
                         <button 
                           className="btn btn-danger" 
                           style={{ padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                          onClick={() => handleReject(booking.id)}
+                          onClick={() => triggerReject(booking.id)}
                         >
                           <X size={14} /> Reject
                         </button>
                       </div>
+
+                      {/* Explicit Rejection Box (Inline Modal) */}
+                      {rejectingId === booking.id && (
+                        <div style={modalStyle}>
+                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#111827' }}>Reject Request</h4>
+                          <input 
+                            type="text" 
+                            style={inputStyle}
+                            placeholder="Enter valid reason..."
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            autoFocus
+                          />
+                          {validationError && <p style={{ color: '#ef4444', fontSize: '0.75rem', margin: '0.2rem 0 0.5rem 0' }}>{validationError}</p>}
+                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                            <button onClick={submitReject} className="btn btn-danger" style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem' }}>Confirm</button>
+                            <button onClick={cancelReject} className="btn btn-outline" style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', background: '#f3f4f6', color: '#374151', border: 'none' }}>Cancel</button>
+                          </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -110,3 +150,24 @@ export default function AdminApprovalPage() {
     </div>
   );
 }
+
+const modalStyle = {
+  marginTop: '0.75rem',
+  padding: '1rem',
+  backgroundColor: '#fef2f2',
+  border: '1px solid #fca5a5',
+  borderRadius: '0.5rem',
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  width: '280px',
+  position: 'absolute',
+  zIndex: 10
+};
+
+const inputStyle = {
+  width: '100%',
+  padding: '0.5rem',
+  border: '1px solid #fecaca',
+  borderRadius: '0.25rem',
+  outline: 'none',
+  fontSize: '0.85rem'
+};

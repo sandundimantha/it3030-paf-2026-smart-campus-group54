@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import userService from '../services/userService';
 
+import { useAuth } from '../context/AuthContext';
+
 export default function AdminUsersPage() {
+  const { user: activeUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null); // userId being saved
@@ -95,22 +98,29 @@ export default function AdminUsersPage() {
                   </span>
                 </td>
                 <td style={styles.td}>
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    style={styles.select}
-                  >
-                    <option value="USER">👤 USER</option>
-                    <option value="ADMIN">🛡️ ADMIN</option>
-                  </select>
+                  {user.id === activeUser?.id ? (
+                    <div style={styles.disabledRoleBox}>
+                      <span title="You cannot change your own role to prevent lockout.">🛡️ ADMIN (You)</span>
+                    </div>
+                  ) : (
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                      style={styles.select}
+                    >
+                      <option value="USER">👤 USER</option>
+                      <option value="ADMIN">🛡️ ADMIN</option>
+                    </select>
+                  )}
                 </td>
                 <td style={styles.td}>
                   <button
                     onClick={() => handleSaveRole(user.id, user.role)}
-                    disabled={saving === user.id}
+                    disabled={saving === user.id || user.id === activeUser?.id}
                     style={{
                       ...styles.saveBtn,
-                      opacity: saving === user.id ? 0.6 : 1,
+                      opacity: (saving === user.id || user.id === activeUser?.id) ? 0.3 : 1,
+                      cursor: user.id === activeUser?.id ? 'not-allowed' : 'pointer'
                     }}
                   >
                     {saving === user.id ? 'Saving...' : 'Save'}
@@ -209,4 +219,14 @@ const styles = {
     fontSize: '0.85rem',
     transition: 'all 0.2s',
   },
+  disabledRoleBox: {
+    padding: '0.4rem 0.5rem',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: '0.375rem',
+    border: '1px dashed #64748b',
+    color: '#94a3b8',
+    fontSize: '0.85rem',
+    display: 'inline-block',
+    cursor: 'not-allowed'
+  }
 };
