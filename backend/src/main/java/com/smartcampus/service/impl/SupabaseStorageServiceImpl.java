@@ -21,11 +21,15 @@ public class SupabaseStorageServiceImpl implements FileStorageService {
     private final String serviceRoleKey;
 
     public SupabaseStorageServiceImpl(
-            WebClient webClient,
+            WebClient.Builder webClientBuilder,
             @Value("${supabase.storage.bucket}") String bucketName,
             @Value("${supabase.url}") String supabaseUrl,
+            @Value("${supabase.key}") String supabaseKey,
             @Value("${supabase.service-role-key}") String serviceRoleKey) {
-        this.webClient = webClient;
+        this.webClient = webClientBuilder
+                .baseUrl(supabaseUrl + "/storage/v1/")
+                .defaultHeader("apikey", supabaseKey)
+                .build();
         this.bucketName = bucketName;
         this.supabaseUrl = supabaseUrl;
         this.serviceRoleKey = serviceRoleKey;
@@ -37,14 +41,17 @@ public class SupabaseStorageServiceImpl implements FileStorageService {
             byte[] fileBytes = file.getBytes();
             
             webClient.post()
-                    .uri("/object/{bucket}/{path}", bucketName, path)
+                    .uri("object/{bucket}/{path}", bucketName, path)
                     .header("Authorization", "Bearer " + serviceRoleKey) // Use service role for bypass RLS
                     .contentType(MediaType.parseMediaType(file.getContentType()))
                     .bodyValue(fileBytes)
                     .retrieve()
                     .onStatus(status -> status.isError(), response -> 
                         response.bodyToMono(String.class)
-                                .flatMap(error -> Mono.error(new RuntimeException("Upload failed: " + error)))
+                                .flatMap(error -> {
+                                    System.err.println("SUPABASE UPLOAD ERROR: " + error);
+                                    return Mono.error(new RuntimeException("Upload failed: " + error));
+                                })
                     )
                     .toBodilessEntity()
                     .block();
@@ -58,7 +65,7 @@ public class SupabaseStorageServiceImpl implements FileStorageService {
     @Override
     public void deleteFile(String path) {
         webClient.delete()
-                .uri("/object/{bucket}/{path}", bucketName, path)
+                .uri("object/{bucket}/{path}", bucketName, path)
                 .header("Authorization", "Bearer " + serviceRoleKey)
                 .retrieve()
                 .onStatus(status -> status.isError(), response -> 

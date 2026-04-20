@@ -83,15 +83,15 @@ public class SecurityConfig {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
-                )
-                .successHandler((request, response, authentication) -> {
-                    response.sendRedirect("http://localhost:5174/profile");
-                })
             );
+// .oauth2Login(oauth2 -> oauth2
+//     .userInfoEndpoint(userInfo -> userInfo
+//         .userService(customOAuth2UserService)
+//     )
+//     .successHandler((request, response, authentication) -> {
+//         response.sendRedirect("http://localhost:5174/profile");
+//     })
+// );
 
         return http.build();
     }
