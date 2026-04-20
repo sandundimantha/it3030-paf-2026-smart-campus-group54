@@ -158,7 +158,7 @@ export default function AdminDashboard() {
               <div className="empty-chart">Awaiting telemetry data.</div>
             ) : (
               <div className="chart-container-wrapper">
-                 <ResponsiveContainer width="100%" height="100%">
+                 <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                     <BarChart data={activityChartData} margin={{top: 20}}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
             </div>
             <div className="chart-container-wrapper">
               {statusPieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                   <PieChart>
                     <Pie data={statusPieData} cx="50%" cy="45%" innerRadius={60} outerRadius={85} paddingAngle={5} dataKey="value" stroke="none">
                       {statusPieData.map((entry, idx) => (<Cell key={`cell-${idx}`} fill={entry.color} />))}

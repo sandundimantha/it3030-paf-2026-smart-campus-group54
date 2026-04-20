@@ -20,6 +20,7 @@ public class DataSeeder {
                 lab.setType("LAB");
                 lab.setCapacity(60);
                 lab.setLocation("block F, 3rd floor");
+                lab.setAvailabilityWindows("Mon-Fri 08:30 - 17:30");
                 lab.setStatus(Resource.ResourceStatus.ACTIVE);
 
                 Resource seminar = new Resource();
@@ -27,6 +28,7 @@ public class DataSeeder {
                 seminar.setType("SEMINAR_ROOM");
                 seminar.setCapacity(40);
                 seminar.setLocation("block A, 1st floor");
+                seminar.setAvailabilityWindows("Mon-Sat 08:00 - 18:00");
                 seminar.setStatus(Resource.ResourceStatus.ACTIVE);
 
                 Resource auditorium = new Resource();
@@ -34,10 +36,23 @@ public class DataSeeder {
                 auditorium.setType("AUDITORIUM");
                 auditorium.setCapacity(300);
                 auditorium.setLocation("block C, Ground floor");
+                auditorium.setAvailabilityWindows("Daily 08:00 - 22:00");
                 auditorium.setStatus(Resource.ResourceStatus.ACTIVE);
 
                 resourceRepository.saveAll(List.of(lab, seminar, auditorium));
                 System.out.println("Sample resources seeded successfully!");
+            } else {
+                // Update existing resources if they have N/A or null availability
+                resourceRepository.findAll().forEach(res -> {
+                    if (res.getAvailabilityWindows() == null || res.getAvailabilityWindows().equals("N/A")) {
+                        if (res.getName().contains("Lab")) res.setAvailabilityWindows("Mon-Fri 08:30 - 17:30");
+                        else if (res.getName().contains("Seminar")) res.setAvailabilityWindows("Mon-Sat 08:00 - 18:00");
+                        else if (res.getName().contains("Auditorium")) res.setAvailabilityWindows("Daily 08:00 - 22:00");
+                        else res.setAvailabilityWindows("Mon-Fri 09:00 - 17:00");
+                        resourceRepository.save(res);
+                    }
+                });
+                System.out.println("Existing resources updated with availability windows!");
             }
         };
     }
