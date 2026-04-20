@@ -42,9 +42,9 @@ public class MaintenanceTicket {
     private TicketStatus status;
 
     @Column(nullable = false)
-    private String reporterId;
+    private Long reporterId;
 
-    private String technicianId;
+    private Long technicianId;
 
     private LocalDateTime resolvedAt;
 

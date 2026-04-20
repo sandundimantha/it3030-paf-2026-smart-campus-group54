@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface MaintenanceRepository extends JpaRepository<MaintenanceTicket, Long> {
-    List<MaintenanceTicket> findByReporterIdOrderByCreatedAtDesc(String reporterId);
+    List<MaintenanceTicket> findByReporterIdOrderByCreatedAtDesc(Long reporterId);
     List<MaintenanceTicket> findByStatusOrderByCreatedAtDesc(MaintenanceTicket.TicketStatus status);
     
     @Query("SELECT t FROM MaintenanceTicket t ORDER BY t.createdAt DESC")

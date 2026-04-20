@@ -1,6 +1,8 @@
 package com.smartcampus.controller;
 
+import com.smartcampus.entity.AppUser;
 import com.smartcampus.entity.MaintenanceTicket;
+import com.smartcampus.repository.AppUserRepository;
 import com.smartcampus.service.MaintenanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,14 @@ import java.util.List;
 public class MaintenanceController {
 
     private final MaintenanceService maintenanceService;
+    private final AppUserRepository appUserRepository;
+
+    private Long getAuthenticatedUserId(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) return null;
+        return appUserRepository.findByEmail(auth.getName())
+               .map(AppUser::getId)
+               .orElse(null);
+    }
 
     @PostMapping("/report")
     public ResponseEntity<MaintenanceTicket> reportIssue(
@@ -26,8 +36,8 @@ public class MaintenanceController {
             @RequestParam(value = "images", required = false) List<MultipartFile> images,
             Authentication authentication) {
         
-        // reporterID get automatically from Security Context
-        String reporterId = authentication != null ? authentication.getName() : "anonymous";
+        Long reporterId = getAuthenticatedUserId(authentication);
+        if (reporterId == null) return ResponseEntity.status(401).build();
         
         MaintenanceTicket ticket = MaintenanceTicket.builder()
                 .category(category)
@@ -42,7 +52,9 @@ public class MaintenanceController {
 
     @GetMapping("/tickets")
     public ResponseEntity<List<MaintenanceTicket>> getAllTickets(Authentication authentication) {
-        String reporterId = authentication != null ? authentication.getName() : "anonymous";
+        Long reporterId = getAuthenticatedUserId(authentication);
+        if (reporterId == null) return ResponseEntity.status(401).build();
+        
         boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         
@@ -76,7 +88,7 @@ public class MaintenanceController {
     @PatchMapping("/tickets/{id}/assign")
     public ResponseEntity<MaintenanceTicket> assignTechnician(
             @PathVariable Long id,
-            @RequestParam String technicianId) {
+            @RequestParam Long technicianId) {
         return ResponseEntity.ok(maintenanceService.assignTechnician(id, technicianId));
     }
 
@@ -88,7 +100,8 @@ public class MaintenanceController {
             Authentication authentication) {
         
         MaintenanceTicket ticket = maintenanceService.getTicketById(id);
-        String currentUserId = authentication != null ? authentication.getName() : "anonymous";
+        Long currentUserId = getAuthenticatedUserId(authentication);
+        if (currentUserId == null) return ResponseEntity.status(401).build();
         
         // Ownership Check: only the reporter can give feedback
         if (!ticket.getReporterId().equals(currentUserId)) {

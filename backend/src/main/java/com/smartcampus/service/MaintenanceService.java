@@ -45,7 +45,7 @@ public class MaintenanceService {
         return maintenanceRepository.save(ticket);
     }
 
-    public List<MaintenanceTicket> getTicketsForUser(String reporterId, boolean isAdmin) {
+    public List<MaintenanceTicket> getTicketsForUser(Long reporterId, boolean isAdmin) {
         if (isAdmin) {
             return maintenanceRepository.findAllSorted();
         } else {
@@ -71,7 +71,7 @@ public class MaintenanceService {
     }
 
     @Transactional
-    public MaintenanceTicket assignTechnician(Long id, String technicianId) {
+    public MaintenanceTicket assignTechnician(Long id, Long technicianId) {
         MaintenanceTicket ticket = getTicketById(id);
         ticket.setTechnicianId(technicianId);
         ticket.setStatus(MaintenanceTicket.TicketStatus.IN_PROGRESS);
