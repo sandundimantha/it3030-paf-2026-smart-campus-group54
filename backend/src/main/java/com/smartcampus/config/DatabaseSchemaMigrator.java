@@ -26,9 +26,49 @@ public class DatabaseSchemaMigrator implements CommandLineRunner {
             migrateColumn("comments", "autor_id");
             migrateColumn("comments", "incident_id");
             
+            // Ensure Maintenance Hub Tables exist
+            createMaintenanceTables();
+            
             logger.info("Database Schema Migration sequence COMPLETED.");
         } catch (Exception e) {
             logger.error("Error during schema migration: {}", e.getMessage());
+        }
+    }
+
+    private void createMaintenanceTables() {
+        try {
+            // Create maintenance_tickets table
+            jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS maintenance_tickets (" +
+                "  id BIGSERIAL PRIMARY KEY," +
+                "  category VARCHAR(255) NOT NULL," +
+                "  description VARCHAR(1000) NOT NULL," +
+                "  location VARCHAR(255) NOT NULL," +
+                "  priority VARCHAR(50) NOT NULL," +
+                "  status VARCHAR(50) NOT NULL," +
+                "  reporter_id VARCHAR(255) NOT NULL," +
+                "  technician_id VARCHAR(255)," +
+                "  resolved_at TIMESTAMP," +
+                "  feedback_comment VARCHAR(1000)," +
+                "  feedback_rating INTEGER," +
+                "  feedback_at TIMESTAMP," +
+                "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ")"
+            );
+
+            // Create maintenance_images table
+            jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS maintenance_images (" +
+                "  id BIGSERIAL PRIMARY KEY," +
+                "  image_url TEXT NOT NULL," +
+                "  ticket_id BIGINT REFERENCES maintenance_tickets(id) ON DELETE CASCADE" +
+                ")"
+            );
+            
+            logger.info("Maintenance Hub tables verified/created successfully.");
+        } catch (Exception e) {
+            logger.error("Error creating Maintenance Hub tables: {}", e.getMessage());
         }
     }
 
